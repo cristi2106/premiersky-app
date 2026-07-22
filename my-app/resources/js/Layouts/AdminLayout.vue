@@ -29,6 +29,12 @@ const navigation = [
         active: 'clients.*',
         icon: 'M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-4-4',
     },
+    {
+        name: 'Airports',
+        route: 'airports.index',
+        active: 'airports.*',
+        icon: 'M12 21c-4.418-3.5-7-7.239-7-10.5A7 7 0 1119 10.5c0 3.261-2.582 7-7 10.5zM12 13a2.5 2.5 0 100-5 2.5 2.5 0 000 5z',
+    },
 ];
 </script>
 

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
@@ -37,10 +38,20 @@ class AppServiceProvider extends ServiceProvider
         // so we tell Laravel its real public root explicitly — same fix
         // shape as the Vite dev server config, and inert everywhere else.
         if ($codespaceName = env('CODESPACE_NAME')) {
-            URL::forceRootUrl(
-                "https://{$codespaceName}-8000.".env('GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN')
-            );
+            $forwardedRoot = "https://{$codespaceName}-8000.".env('GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN');
+
+            URL::forceRootUrl($forwardedRoot);
             URL::forceScheme('https');
+
+            // Pagination links are a special case: Illuminate\Pagination's
+            // own service provider resolves the current path straight from
+            // the raw request (request()->url()) rather than through the
+            // URL generator, so they inherit the same unreachable
+            // localhost:8000 that forceRootUrl above exists to paper over.
+            // Route the paginator's path through the forced root too.
+            Paginator::currentPathResolver(
+                fn () => $forwardedRoot.request()->getPathInfo()
+            );
         }
     }
 }

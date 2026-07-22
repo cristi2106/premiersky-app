@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AirportController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -17,6 +18,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::resource('clients', ClientController::class)->except('show');
+    Route::resource('airports', AirportController::class)->except('show');
 });
 
 require __DIR__.'/auth.php';
