@@ -16,9 +16,20 @@ createInertiaApp({
             import.meta.glob('./Pages/**/*.vue'),
         ),
     setup({ el, App, props, plugin }) {
+        // The `Ziggy` global (injected by the @routes Blade directive) carries
+        // a server-computed `url` used as the base for every route(...) call.
+        // Behind a reverse proxy that doesn't forward the original Host header
+        // (e.g. Codespaces port forwarding), that base can be wrong. The
+        // browser's own origin is always correct, so it wins here — this
+        // works unmodified in Codespaces, other local setups, and production.
+        const ziggyConfig = {
+            ...(typeof Ziggy !== 'undefined' ? Ziggy : {}),
+            url: window.location.origin,
+        };
+
         return createApp({ render: () => h(App, props) })
             .use(plugin)
-            .use(ZiggyVue)
+            .use(ZiggyVue, ziggyConfig)
             .mount(el);
     },
     progress: {
