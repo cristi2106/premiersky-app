@@ -20,7 +20,7 @@ defineEmits(['navigate']);
             @click="$emit('navigate')"
             class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition duration-150 ease-in-out"
             :class="
-                route().current(item.route)
+                route().current(item.active ?? item.route)
                     ? 'bg-slate-800 text-white'
                     : 'text-slate-300 hover:bg-slate-800 hover:text-white'
             "

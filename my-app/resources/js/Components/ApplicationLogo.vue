@@ -1,6 +1,9 @@
 <template>
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="24" height="24" rx="6" fill="#0284c7" />
-        <path d="M13.6 3.4 6 13h3.3l-1.7 7.6L16 10.4h-3.5l1.1-7Z" fill="#fff" />
+        <rect width="24" height="24" rx="6" fill="#000" />
+        <path
+            d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-6.5l8 2.5z"
+            fill="#D4AF37"
+        />
     </svg>
 </template>
