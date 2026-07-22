@@ -23,7 +23,7 @@ const submit = () => {
     <Head title="New Client" />
 
     <AdminLayout title="New Client">
-        <div class="max-w-xl overflow-hidden rounded-lg bg-white p-6 shadow-sm">
+        <div class="card max-w-xl p-6">
             <form class="space-y-6" @submit.prevent="submit">
                 <div>
                     <InputLabel for="company_name" value="Company Name" />
@@ -84,7 +84,7 @@ const submit = () => {
                 <div class="flex items-center justify-end gap-4">
                     <Link
                         :href="route('clients.index')"
-                        class="text-sm text-gray-600 hover:text-gray-900"
+                        class="text-sm font-medium text-gray-600 hover:text-gray-900"
                     >
                         Cancel
                     </Link>

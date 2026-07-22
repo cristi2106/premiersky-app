@@ -33,7 +33,7 @@ const navigation = [
 </script>
 
 <template>
-    <div class="flex min-h-screen bg-gray-100">
+    <div class="flex min-h-screen bg-gray-50">
         <!-- Mobile sidebar backdrop -->
         <Transition
             enter-active-class="transition-opacity ease-linear duration-200"
@@ -45,7 +45,7 @@ const navigation = [
         >
             <div
                 v-if="sidebarOpen"
-                class="fixed inset-0 z-40 bg-slate-900/60 lg:hidden"
+                class="fixed inset-0 z-40 bg-gray-900/60 lg:hidden"
                 @click="sidebarOpen = false"
             />
         </Transition>
@@ -61,7 +61,7 @@ const navigation = [
         >
             <div
                 v-if="sidebarOpen"
-                class="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[80vw] flex-col bg-slate-900 lg:hidden"
+                class="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[80vw] flex-col bg-gray-950 lg:hidden"
             >
                 <div class="flex h-16 shrink-0 items-center justify-between px-4">
                     <Link
@@ -69,13 +69,13 @@ const navigation = [
                         class="flex items-center gap-2"
                     >
                         <ApplicationLogo class="h-8 w-8" />
-                        <span class="text-lg font-semibold text-white">
+                        <span class="text-lg font-semibold tracking-tight text-white">
                             PremierSky
                         </span>
                     </Link>
                     <button
                         type="button"
-                        class="rounded-md p-2 text-slate-400 hover:bg-slate-800 hover:text-white"
+                        class="rounded-lg p-2 text-gray-400 hover:bg-white/5 hover:text-white"
                         @click="sidebarOpen = false"
                     >
                         <span class="sr-only">Close sidebar</span>
@@ -106,10 +106,10 @@ const navigation = [
         <div
             class="hidden lg:fixed lg:inset-y-0 lg:z-30 lg:flex lg:w-64 lg:flex-col"
         >
-            <div class="flex grow flex-col overflow-y-auto bg-slate-900">
+            <div class="flex grow flex-col overflow-y-auto bg-gray-950">
                 <div class="flex h-16 shrink-0 items-center gap-2 px-6">
                     <ApplicationLogo class="h-8 w-8" />
-                    <span class="text-lg font-semibold text-white">
+                    <span class="text-lg font-semibold tracking-tight text-white">
                         PremierSky
                     </span>
                 </div>
@@ -122,7 +122,7 @@ const navigation = [
         <div class="flex min-w-0 flex-1 flex-col lg:pl-64">
             <!-- Top bar -->
             <div
-                class="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:px-6 lg:px-8"
+                class="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 sm:px-6 lg:px-8"
             >
                 <button
                     type="button"
@@ -146,7 +146,7 @@ const navigation = [
                 </button>
 
                 <h1
-                    class="min-w-0 flex-1 truncate text-lg font-semibold text-gray-900"
+                    class="min-w-0 flex-1 truncate text-xl font-semibold tracking-tight text-gray-900"
                 >
                     {{ title }}
                 </h1>
@@ -155,10 +155,10 @@ const navigation = [
                     <template #trigger>
                         <button
                             type="button"
-                            class="flex items-center gap-2 rounded-md py-1.5 pl-1.5 pr-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none"
+                            class="flex items-center gap-2 rounded-lg py-1.5 pl-1.5 pr-2 text-sm font-medium text-gray-700 hover:bg-gray-100 focus:outline-none"
                         >
                             <span
-                                class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-sm font-semibold text-white"
+                                class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-white"
                             >
                                 {{ page.props.auth.user.name.charAt(0).toUpperCase() }}
                             </span>

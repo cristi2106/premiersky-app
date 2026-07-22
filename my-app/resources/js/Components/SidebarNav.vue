@@ -12,17 +12,17 @@ defineEmits(['navigate']);
 </script>
 
 <template>
-    <nav class="flex-1 space-y-1 px-3 py-4">
+    <nav class="flex-1 space-y-0.5 px-3 py-4">
         <Link
             v-for="item in navigation"
             :key="item.name"
             :href="route(item.route)"
             @click="$emit('navigate')"
-            class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition duration-150 ease-in-out"
+            class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition duration-150 ease-in-out"
             :class="
                 route().current(item.active ?? item.route)
-                    ? 'bg-slate-800 text-white'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                    ? 'bg-accent-600 text-white'
+                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
             "
         >
             <svg

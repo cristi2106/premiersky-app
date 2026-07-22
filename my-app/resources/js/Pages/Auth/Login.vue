@@ -33,11 +33,21 @@ const submit = () => {
     <GuestLayout>
         <Head title="Log in" />
 
-        <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
+        <h1 class="text-xl font-semibold tracking-tight text-gray-900">
+            Sign in
+        </h1>
+        <p class="mt-1 text-sm text-gray-500">
+            Welcome back, enter your details below.
+        </p>
+
+        <div
+            v-if="status"
+            class="mt-6 rounded-lg bg-green-50 px-4 py-3 text-sm font-medium text-green-700"
+        >
             {{ status }}
         </div>
 
-        <form @submit.prevent="submit">
+        <form class="mt-6" @submit.prevent="submit">
             <div>
                 <InputLabel for="email" value="Email" />
 
@@ -78,11 +88,11 @@ const submit = () => {
                 </label>
             </div>
 
-            <div class="mt-4 flex items-center justify-end">
+            <div class="mt-6 flex items-center justify-end">
                 <Link
                     v-if="canResetPassword"
                     :href="route('password.request')"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    class="rounded-md text-sm text-accent-600 hover:text-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2"
                 >
                     Forgot your password?
                 </Link>
