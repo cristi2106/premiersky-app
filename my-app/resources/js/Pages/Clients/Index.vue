@@ -136,7 +136,7 @@ const deleteClient = () => {
                                 </Link>
                                 <button
                                     type="button"
-                                    class="ml-4 text-red-600 hover:text-red-700"
+                                    class="-my-1 ml-4 cursor-pointer rounded-md px-2 py-1 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                                     @click="confirmDeletion(client)"
                                 >
                                     Delete
@@ -186,7 +186,7 @@ const deleteClient = () => {
                         </Link>
                         <button
                             type="button"
-                            class="text-red-600 hover:text-red-700"
+                            class="-my-1 cursor-pointer rounded-md px-2 py-1 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                             @click="confirmDeletion(client)"
                         >
                             Delete
