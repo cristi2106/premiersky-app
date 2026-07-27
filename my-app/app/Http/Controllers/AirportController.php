@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Airport;
 use App\Services\CountryLookup;
 use App\Services\TimezoneResolver;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -43,6 +44,29 @@ class AirportController extends Controller
             'airports' => $airports,
             'filters' => ['search' => $search],
         ]);
+    }
+
+    /**
+     * Return airports matching a search query, for the searchable select
+     * used by the Flight Calculator (and, later, Contracts).
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $search = trim((string) $request->query('search', ''));
+
+        $airports = Airport::query()
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('icao_code', 'like', "%{$search}%")
+                        ->orWhere('iata_code', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('name')
+            ->limit(20)
+            ->get(['id', 'name', 'icao_code', 'iata_code', 'timezone']);
+
+        return response()->json($airports);
     }
 
     /**

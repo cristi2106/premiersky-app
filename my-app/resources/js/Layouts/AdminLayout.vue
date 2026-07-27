@@ -16,7 +16,7 @@ defineProps({
 const page = usePage();
 const sidebarOpen = ref(false);
 
-// Add new modules here as they're built out (Aircraft, Airports, Contracts, Aircraft Types, Quotes).
+// Add new modules here as they're built out (Contracts, Quotes).
 const navigation = [
     {
         name: 'Dashboard',
@@ -34,6 +34,18 @@ const navigation = [
         route: 'airports.index',
         active: 'airports.*',
         icon: 'M12 21c-4.418-3.5-7-7.239-7-10.5A7 7 0 1119 10.5c0 3.261-2.582 7-7 10.5zM12 13a2.5 2.5 0 100-5 2.5 2.5 0 000 5z',
+    },
+    {
+        name: 'Aircraft Types',
+        route: 'aircraft-speed-references.index',
+        active: 'aircraft-speed-references.*',
+        icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
+    },
+    {
+        name: 'Flight Calculator',
+        route: 'flight-calculator.index',
+        active: 'flight-calculator.*',
+        icon: 'M9 7h6m0 10v-3m-3 3v-3m-3 3v-3m9-10H6a2 2 0 00-2 2v14l4-2 4 2 4-2 4 2V5a2 2 0 00-2-2z',
     },
 ];
 </script>
