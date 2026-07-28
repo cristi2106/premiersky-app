@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 
 const props = defineProps({
     modelValue: {
@@ -22,11 +22,24 @@ const props = defineProps({
         type: String,
         default: null,
     },
+    // Pre-fills the input's display text for an already-selected
+    // modelValue (e.g. editing an existing record) without needing an
+    // extra round trip just to look up its label.
+    initialLabel: {
+        type: String,
+        default: null,
+    },
 });
 
 const emit = defineEmits(['update:modelValue', 'select']);
 
 const query = ref('');
+
+onMounted(() => {
+    if (props.modelValue !== null && props.initialLabel) {
+        query.value = props.initialLabel;
+    }
+});
 const results = ref([]);
 const open = ref(false);
 const loading = ref(false);

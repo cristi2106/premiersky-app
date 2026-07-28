@@ -47,6 +47,12 @@ const navigation = [
         active: 'flight-calculator.*',
         icon: 'M9 7h6m0 10v-3m-3 3v-3m-3 3v-3m9-10H6a2 2 0 00-2 2v14l4-2 4 2 4-2 4 2V5a2 2 0 00-2-2z',
     },
+    {
+        name: 'Contracts',
+        route: 'contracts.index',
+        active: 'contracts.*',
+        icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+    },
 ];
 </script>
 

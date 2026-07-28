@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Client;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -21,6 +22,25 @@ class ClientController extends Controller
                 ->orderBy('company_name')
                 ->get(),
         ]);
+    }
+
+    /**
+     * Return clients matching a search query, for the searchable select
+     * used by the Contracts module.
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $search = trim((string) $request->query('search', ''));
+
+        $clients = Client::query()
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where('company_name', 'like', "%{$search}%");
+            })
+            ->orderBy('company_name')
+            ->limit(20)
+            ->get(['id', 'company_name', 'address']);
+
+        return response()->json($clients);
     }
 
     /**

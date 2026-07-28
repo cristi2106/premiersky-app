@@ -3,6 +3,7 @@
 use App\Http\Controllers\AircraftSpeedReferenceController;
 use App\Http\Controllers\AirportController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\ContractController;
 use App\Http\Controllers\FlightCalculatorController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -19,6 +20,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    Route::get('clients/search', [ClientController::class, 'search'])->name('clients.search');
     Route::resource('clients', ClientController::class)->except('show');
 
     Route::get('airports/search', [AirportController::class, 'search'])->name('airports.search');
@@ -29,6 +31,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('flight-calculator', [FlightCalculatorController::class, 'index'])->name('flight-calculator.index');
     Route::post('flight-calculator/calculate', [FlightCalculatorController::class, 'calculate'])->name('flight-calculator.calculate');
+
+    Route::get('contracts/{contract}/pdf', [ContractController::class, 'pdf'])->name('contracts.pdf');
+    Route::resource('contracts', ContractController::class)->except('show');
 });
 
 require __DIR__.'/auth.php';
