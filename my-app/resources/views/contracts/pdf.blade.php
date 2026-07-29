@@ -7,6 +7,12 @@
     $currencySymbols = ['EUR' => '€', 'USD' => '$', 'RON' => 'RON '];
     $priceLabel = ($currencySymbols[$contract->currency] ?? $contract->currency . ' ')
         . number_format((float) $contract->price, 2);
+    $logoPath = resource_path('images/LOGO2023.png');
+    $logoData = is_file($logoPath)
+        ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
+        : null;
+    $termsPath = app_path('terms/terms_and_conditions.txt');
+    $termsContent = is_file($termsPath) ? trim(file_get_contents($termsPath)) : null;
 ?>
 <!DOCTYPE html>
 <html>
@@ -15,7 +21,7 @@
     <title>Charter Agreement {{ $contract->reference_number }}</title>
     <style>
         @page {
-            margin: 70px 45px 90px 45px;
+            margin: 30px 45px 90px 45px;
         }
 
         body {
@@ -32,20 +38,25 @@
 
         .footer {
             position: fixed;
-            bottom: -70px;
+            bottom: -80px;
             left: 0;
             right: 0;
-            height: 60px;
-            padding-top: 8px;
+            height: 56px;
+            padding-top: 16px;
             border-top: 1px solid #d1d5db;
-            font-size: 8px;
+            font-size: 7px;
+            line-height: 1.6;
             color: #6b7280;
             text-align: center;
         }
 
-        .footer .placeholder {
-            color: #9ca3af;
-            font-style: italic;
+        .footer-legal-name {
+            font-weight: bold;
+            color: #4b5563;
+        }
+
+        .footer-contact-row {
+            margin-top: 6px;
         }
 
         table.header-row {
@@ -68,14 +79,33 @@
         }
 
         .agreement-title {
-            font-size: 20px;
+            font-size: 14px;
             font-weight: bold;
             letter-spacing: 0.5px;
+            color: #D4C783;
+        }
+
+        .header-row .logo-cell {
+            vertical-align: bottom;
+        }
+
+        .header-row .logo-cell img {
+            width: 185px;
+            height: 74px;
+            margin-bottom: 70px;
         }
 
         .section {
-            margin-bottom: 18px;
+            margin-bottom: 36px;
             clear: both;
+        }
+
+        .section-charterer {
+            margin-bottom: 14px;
+        }
+
+        .section-itinerary {
+            margin-bottom: 14px;
         }
 
         .section-title {
@@ -83,7 +113,7 @@
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.6px;
-            color: #2563eb;
+            color: #D4C783;
             margin-bottom: 6px;
             border-bottom: 1px solid #e5e7eb;
             padding-bottom: 4px;
@@ -96,8 +126,13 @@
         }
 
         .client-name {
-            font-size: 12px;
+            font-size: 9.5px;
             font-weight: bold;
+        }
+
+        .client-vat {
+            margin-top: 3px;
+            color: #374151;
         }
 
         .client-address {
@@ -115,7 +150,6 @@
             border: 1px solid #e5e7eb;
             padding: 6px 7px;
             text-align: left;
-            font-size: 9.5px;
         }
 
         table.specs th {
@@ -126,13 +160,24 @@
             color: #6b7280;
         }
 
+        table.specs td {
+            font-size: 9.5px;
+            font-weight: bold;
+            color: #111827;
+            padding: 7px 7px;
+        }
+
         table.specs td.leg-label {
             font-weight: bold;
-            color: #2563eb;
+            color: #9c7a2a;
             white-space: nowrap;
         }
 
         table.specs th.date-col, table.specs td.date-col {
+            white-space: nowrap;
+        }
+
+        table.specs th.nowrap-col, table.specs td.nowrap-col {
             white-space: nowrap;
         }
 
@@ -156,13 +201,13 @@
         }
 
         .price-amount {
-            font-size: 12px;
+            font-size: 9.5px;
             font-weight: bold;
             color: #111827;
         }
 
         .aircraft-model {
-            font-size: 12px;
+            font-size: 9.5px;
             font-weight: bold;
         }
 
@@ -176,43 +221,77 @@
             font-style: italic;
         }
 
+        .section-aircraft-price {
+            margin-bottom: 12px;
+        }
+
+        .standard-notes {
+            font-size: 7.5px;
+            line-height: 1.5;
+            color: #6b7280;
+        }
+
+        .standard-notes ul {
+            margin: 0;
+            padding-left: 12px;
+        }
+
+        .standard-notes li {
+            margin-bottom: 3px;
+        }
+
+        .standard-notes li:last-child {
+            margin-bottom: 0;
+        }
+
         .terms-page {
             page-break-before: always;
             padding-top: 10px;
         }
 
+        .signatures-section {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -10px;
+        }
+
         table.signatures {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 40px;
         }
 
         table.signatures td {
             width: 50%;
             padding-top: 8px;
-            border-top: 1px solid #111827;
             font-size: 9.5px;
             color: #4b5563;
         }
 
         table.signatures td.right-cell {
-            padding-left: 20px;
+            padding-left: 24px;
+            border-left: 1px solid #d1d5db;
         }
 
         table.signatures td.left-cell {
-            padding-right: 20px;
+            padding-right: 24px;
         }
     </style>
 </head>
 <body>
 
     <div class="footer">
-        <div class="placeholder">[Company footer details to be added — name, contact info, bank details]</div>
+        <div><span class="footer-legal-name">PREMIER SKY SRL</span> &middot; VAT: RO44915218 &middot; Registration no: J2021002286298</div>
+        <div>Address: Str. Carpati Nr.63, Baicoi, Prahova, Romania</div>
+        <div class="footer-contact-row">e-mail: office@premiersky.ro &middot; Phone: +40721 974 756 &middot; Phone: +40765 020 533 &middot; Web: www.premiersky.ro</div>
     </div>
 
     <table class="header-row">
         <tr>
-            <td>
+            <td class="logo-cell">
+                @if ($logoData)
+                    <div><img src="{{ $logoData }}" alt="Company logo"></div>
+                @endif
                 <h1 class="agreement-title">CHARTER AGREEMENT</h1>
             </td>
             <td class="meta-cell">
@@ -222,53 +301,56 @@
         </tr>
     </table>
 
-    <div class="section">
+    <div class="section section-charterer">
         <div class="section-title">Charterer</div>
         <div class="box">
             <div class="client-name">{{ $contract->client->company_name ?? 'Untitled client' }}</div>
+            @if ($contract->client->vat_code)
+                <div class="client-vat">VAT: {{ $contract->client->vat_code }}</div>
+            @endif
             @if ($contract->client->address)
                 <div class="client-address">{{ $contract->client->address }}</div>
             @endif
         </div>
     </div>
 
-    <div class="section">
+    <div class="section section-itinerary">
         <div class="section-title">Itinerary</div>
         <table class="specs">
             <thead>
                 <tr>
                     @if ($legCount > 1)
-                        <th>Leg</th>
+                        <th class="nowrap-col">Leg</th>
                     @endif
                     <th class="date-col">Date</th>
                     <th>From</th>
                     <th>To</th>
-                    <th>Departure (local)</th>
-                    <th>Arrival (local)</th>
-                    <th>Flight Time</th>
-                    <th>Pax</th>
+                    <th class="nowrap-col">Take-off</th>
+                    <th class="nowrap-col">Arrival</th>
+                    <th class="nowrap-col">Flight Time</th>
+                    <th class="nowrap-col">Pax</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($contract->legs as $index => $leg)
                     <tr>
                         @if ($legCount > 1)
-                            <td class="leg-label">LEG {{ $index + 1 }}</td>
+                            <td class="leg-label">{{ $index + 1 }}</td>
                         @endif
                         <td class="date-col">{{ $leg->flight_date->format('d M Y') }}</td>
                         <td>{{ $airportLabel($leg->departureAirport) }}</td>
                         <td>{{ $airportLabel($leg->arrivalAirport) }}</td>
-                        <td>{{ substr($leg->departure_time, 0, 5) }}</td>
-                        <td>{{ $leg->arrival_datetime->format('H:i') }}</td>
-                        <td>{{ $durationLabel($leg->flight_duration_minutes) }}</td>
-                        <td>{{ $leg->pax }}</td>
+                        <td class="nowrap-col">{{ substr($leg->departure_time, 0, 5) }}</td>
+                        <td class="nowrap-col">{{ $leg->arrival_datetime->format('H:i') }}</td>
+                        <td class="nowrap-col">{{ $durationLabel($leg->flight_duration_minutes) }}</td>
+                        <td class="nowrap-col">{{ $leg->pax }}</td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
     </div>
 
-    <div class="section">
+    <div class="section section-aircraft-price">
         <table class="side-by-side">
             <tr>
                 <td class="left-cell">
@@ -287,6 +369,14 @@
         </table>
     </div>
 
+    <div class="section standard-notes">
+        <ul>
+            <li>Departure and arrival times are given according to the local time zone of the origin/destination airports</li>
+            <li>Schedule changes will take into account crew duty limitations as well as slots and permits.</li>
+            <li>Costs for de-icing, or for parking the aircraft in a hangar to avoid de-icing, are not included in the flight price. Premier Sky has the right to charge these costs separately, upon presentation of supporting documents.</li>
+        </ul>
+    </div>
+
     @if ($contract->special_information)
         <div class="section">
             <div class="section-title">Special Information</div>
@@ -301,7 +391,7 @@
         </div>
     @endif
 
-    <div class="section">
+    <div class="section signatures-section">
         <div class="section-title">Signatures</div>
         <table class="signatures">
             <tr>
@@ -318,7 +408,11 @@
     <div class="terms-page">
         <div class="section">
             <div class="section-title">Terms and Conditions</div>
-            <p class="placeholder-note">[Insert your company's terms and conditions here]</p>
+            @if ($termsContent)
+                <div class="text-block">{{ $termsContent }}</div>
+            @else
+                <p class="placeholder-note">[Terms and conditions file not found — add it at app/terms/terms_and_conditions.txt]</p>
+            @endif
         </div>
     </div>
 

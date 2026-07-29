@@ -9,6 +9,7 @@ const page = usePage();
 // module; omit it to render the card as a muted "coming soon" placeholder.
 const modules = [
     { name: 'Clients', description: 'Company records and billing details.', route: 'clients.index' },
+    { name: 'Charter Fleet Directory', description: 'Operator aircraft available for charter, synced from Aviapages.', route: 'charter-fleet.index' },
     { name: 'Aircraft', description: 'Fleet and aircraft details.' },
     { name: 'Contracts', description: 'Charter contracts and status.' },
     { name: 'Quotes', description: 'Client quotes and offers.' },

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AircraftSpeedReferenceController;
 use App\Http\Controllers\AirportController;
+use App\Http\Controllers\CharterFleetController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\FlightCalculatorController;
@@ -34,6 +35,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('contracts/{contract}/pdf', [ContractController::class, 'pdf'])->name('contracts.pdf');
     Route::resource('contracts', ContractController::class)->except('show');
+
+    Route::get('charter-fleet', [CharterFleetController::class, 'index'])->name('charter-fleet.index');
+    Route::post('charter-fleet/sync', [CharterFleetController::class, 'sync'])->name('charter-fleet.sync');
 });
 
 require __DIR__.'/auth.php';
