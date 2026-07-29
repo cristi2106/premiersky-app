@@ -244,6 +244,13 @@
             margin-bottom: 0;
         }
 
+        .signature-note {
+            font-size: 7.5px;
+            line-height: 1.5;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
         .terms-page {
             page-break-before: always;
             padding-top: 10px;
@@ -393,6 +400,7 @@
 
     <div class="section signatures-section">
         <div class="section-title">Signatures</div>
+        <p class="signature-note">By signing below, the Charterer accepts and agrees to the Terms and Conditions set out on the following page.</p>
         <table class="signatures">
             <tr>
                 <td class="left-cell">
