@@ -9,6 +9,7 @@ import SecondaryButton from '@/Components/SecondaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { useForm } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 const emptyLeg = () => ({
     departure_airport_id: null,
@@ -24,8 +25,29 @@ const form = useForm({
     legs: [emptyLeg()],
     price: '',
     currency: 'EUR',
+    vat_percentage: 0,
     special_information: '',
     cancellation_policy: '',
+});
+
+const formatAmount = (amount) =>
+    `${amount.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} ${form.currency}`;
+
+const priceWithVat = computed(() => {
+    const price = Number(form.price) || 0;
+    const vat = Number(form.vat_percentage) || 0;
+    return price * (1 + vat / 100);
+});
+
+const priceBreakdown = computed(() => {
+    const vat = Number(form.vat_percentage) || 0;
+    const price = Number(form.price) || 0;
+
+    if (vat <= 0) {
+        return formatAmount(price);
+    }
+
+    return `${formatAmount(price)} + ${vat}% = ${formatAmount(priceWithVat.value)}`;
 });
 
 const addLeg = () => {
@@ -153,6 +175,24 @@ const submit = () => {
                             <option value="USD">USD</option>
                         </select>
                         <InputError class="mt-2" :message="form.errors.currency" />
+                    </div>
+
+                    <div>
+                        <InputLabel for="vat_percentage" value="VAT (%)" />
+                        <TextInput
+                            id="vat_percentage"
+                            v-model="form.vat_percentage"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            max="100"
+                            class="mt-1 block w-full"
+                        />
+                        <InputError class="mt-2" :message="form.errors.vat_percentage" />
+                    </div>
+
+                    <div class="flex items-end">
+                        <p class="text-sm text-gray-700">{{ priceBreakdown }}</p>
                     </div>
                 </div>
             </div>

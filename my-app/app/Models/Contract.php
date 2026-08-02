@@ -14,6 +14,7 @@ class Contract extends Model
         'reference_number',
         'price',
         'currency',
+        'vat_percentage',
         'special_information',
         'cancellation_policy',
         'status',
@@ -21,6 +22,7 @@ class Contract extends Model
 
     protected $casts = [
         'price' => 'decimal:2',
+        'vat_percentage' => 'decimal:2',
     ];
 
     public function client(): BelongsTo

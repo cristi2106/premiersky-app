@@ -4,9 +4,13 @@
     $durationLabel = function (int $minutes) {
         return sprintf('%dh %02dm', intdiv($minutes, 60), $minutes % 60);
     };
-    $currencySymbols = ['EUR' => '€', 'USD' => '$', 'RON' => 'RON '];
-    $priceLabel = ($currencySymbols[$contract->currency] ?? $contract->currency . ' ')
-        . number_format((float) $contract->price, 2);
+    $formatAmount = fn (float $amount) => number_format($amount, 0);
+    $vatPercentage = (float) $contract->vat_percentage;
+    $priceWithVat = (float) $contract->price * (1 + $vatPercentage / 100);
+    $totalLabel = 'Total ' . $formatAmount($priceWithVat) . ' ' . $contract->currency;
+    $priceBreakdownHtml = $vatPercentage > 0
+        ? e($formatAmount((float) $contract->price) . ' ' . $contract->currency . ' + VAT ' . rtrim(rtrim(number_format($vatPercentage, 2), '0'), '.') . '% = ') . '<span class="price-total-hero">' . e($totalLabel) . '</span>'
+        : e($formatAmount((float) $contract->price) . ' ' . $contract->currency);
     $logoPath = resource_path('images/LOGO2023.png');
     $logoData = is_file($logoPath)
         ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
@@ -21,6 +25,10 @@
     <title>Charter Agreement {{ $contract->reference_number }}</title>
     <style>
         @page {
+            margin: 90px 45px 90px 45px;
+        }
+
+        @page :first {
             margin: 30px 45px 90px 45px;
         }
 
@@ -206,6 +214,11 @@
             color: #111827;
         }
 
+        .price-total-hero {
+            font-size: 11px;
+            font-weight: bold;
+        }
+
         .aircraft-model {
             font-size: 9.5px;
             font-weight: bold;
@@ -253,7 +266,36 @@
 
         .terms-page {
             page-break-before: always;
-            padding-top: 10px;
+        }
+
+        .terms-repeating-header {
+            position: fixed;
+            top: -70px;
+            left: 0;
+            right: 0;
+        }
+
+        table.terms-header-row {
+            width: 100%;
+            border-collapse: collapse;
+            border-bottom: 1px solid #d1d5db;
+            padding-bottom: 10px;
+        }
+
+        table.terms-header-row td {
+            padding-bottom: 10px;
+            vertical-align: middle;
+        }
+
+        .terms-header-row .terms-logo-cell img {
+            width: 70px;
+            height: 28px;
+        }
+
+        .terms-header-row .terms-ref-cell {
+            text-align: right;
+            font-size: 8.5px;
+            color: #6b7280;
         }
 
         .signatures-section {
@@ -283,6 +325,19 @@
         table.signatures td.left-cell {
             padding-right: 24px;
         }
+
+        .signature-line {
+            height: 28px;
+            border-bottom: 1px solid #9ca3af;
+        }
+
+        .signature-label {
+            margin-top: 4px;
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #9ca3af;
+        }
     </style>
 </head>
 <body>
@@ -291,6 +346,21 @@
         <div><span class="footer-legal-name">PREMIER SKY SRL</span> &middot; VAT: RO44915218 &middot; Registration no: J2021002286298</div>
         <div>Address: Str. Carpati Nr.63, Baicoi, Prahova, Romania</div>
         <div class="footer-contact-row">e-mail: office@premiersky.ro &middot; Phone: +40721 974 756 &middot; Phone: +40765 020 533 &middot; Web: www.premiersky.ro</div>
+    </div>
+
+    <div class="terms-repeating-header">
+        <table class="terms-header-row">
+            <tr>
+                <td class="terms-logo-cell">
+                    @if ($logoData)
+                        <img src="{{ $logoData }}" alt="Company logo">
+                    @endif
+                </td>
+                <td class="terms-ref-cell">
+                    Contract Ref: {{ $contract->reference_number }}
+                </td>
+            </tr>
+        </table>
     </div>
 
     <table class="header-row">
@@ -369,7 +439,7 @@
                 <td class="right-cell">
                     <div class="section-title">Price</div>
                     <div class="box">
-                        <div class="price-amount">{{ $priceLabel }} {{ $contract->currency }}</div>
+                        <div class="price-amount">{!! $priceBreakdownHtml !!}</div>
                     </div>
                 </td>
             </tr>
@@ -404,10 +474,12 @@
         <table class="signatures">
             <tr>
                 <td class="left-cell">
-                    Charterer Signature &amp; Date
+                    <div class="signature-line"></div>
+                    <div class="signature-label">Charterer Signature</div>
                 </td>
                 <td class="right-cell">
-                    Broker Signature &amp; Date
+                    <div class="signature-line"></div>
+                    <div class="signature-label">Broker Signature</div>
                 </td>
             </tr>
         </table>
