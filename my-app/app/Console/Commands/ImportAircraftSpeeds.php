@@ -19,6 +19,20 @@ class ImportAircraftSpeeds extends Command
 
     private const SPEED_HEADER_KEYWORDS = ['cruisespeedknots', 'cruisespeed', 'speedknots', 'knots', 'speed', 'kts'];
 
+    /**
+     * Header keywords for the optional cabin/capacity columns. Each maps to
+     * the AircraftSpeedReference attribute it fills; unmatched columns are
+     * simply left null since these fields are all optional.
+     */
+    private const OPTIONAL_COLUMN_KEYWORDS = [
+        'cabin_width_m' => ['cabinwidthm', 'cabinwidth'],
+        'cabin_height_m' => ['cabinheightm', 'cabinheight'],
+        'cabin_length_m' => ['cabinlengthm', 'cabinlength'],
+        'cabin_volume_m3' => ['cabinvolumem3', 'cabinvolume'],
+        'baggage_capacity_m3' => ['baggagecapacitym3', 'baggagecapacity'],
+        'seating_capacity' => ['seatingcapacity', 'seating', 'seats'],
+    ];
+
     public function handle(): int
     {
         $path = $this->argument('path');
@@ -67,6 +81,10 @@ class ImportAircraftSpeeds extends Command
             return self::FAILURE;
         }
 
+        $optionalColumnIndexes = $firstRowIsHeader
+            ? $this->resolveOptionalColumns($firstRow)
+            : [];
+
         if (! $firstRowIsHeader) {
             rewind($handle);
         }
@@ -107,9 +125,11 @@ class ImportAircraftSpeeds extends Command
                 continue;
             }
 
+            $optionalAttributes = $this->extractOptionalAttributes($row, $optionalColumnIndexes);
+
             AircraftSpeedReference::updateOrCreate(
                 ['type_name' => $typeName],
-                ['cruise_speed_knots' => $cruiseSpeedKnots],
+                ['cruise_speed_knots' => $cruiseSpeedKnots, ...$optionalAttributes],
             );
 
             $imported++;
@@ -177,6 +197,64 @@ class ImportAircraftSpeeds extends Command
         }
 
         return [$nameIndex, $speedIndex, true];
+    }
+
+    /**
+     * Matches header cells to the optional cabin/capacity columns by
+     * keyword. Any column not found in the header is simply left out, since
+     * all of these fields are nullable.
+     *
+     * @return array<string, int> attribute name => column index
+     */
+    private function resolveOptionalColumns(array $headerRow): array
+    {
+        $indexes = [];
+
+        foreach (self::OPTIONAL_COLUMN_KEYWORDS as $attribute => $keywords) {
+            $index = $this->findColumnByKeywords($headerRow, $keywords);
+
+            if ($index !== null) {
+                $indexes[$attribute] = $index;
+            }
+        }
+
+        return $indexes;
+    }
+
+    /**
+     * Reads the optional cabin/capacity values out of a data row. Blank
+     * cells are stored as null rather than skipping the row, since these
+     * columns are optional. seating_capacity is kept as free text (e.g.
+     * "8–50 (VIP layout dependent)") since it's frequently a range or
+     * annotation rather than a single number; the other columns are
+     * numeric and stored as null if the cell isn't a valid number.
+     *
+     * @param  array<string, int>  $optionalColumnIndexes
+     * @return array<string, string|float|null>
+     */
+    private function extractOptionalAttributes(array $row, array $optionalColumnIndexes): array
+    {
+        $attributes = [];
+
+        foreach ($optionalColumnIndexes as $attribute => $index) {
+            $raw = array_key_exists($index, $row) ? trim((string) $row[$index]) : '';
+
+            if ($raw === '') {
+                $attributes[$attribute] = null;
+
+                continue;
+            }
+
+            if ($attribute === 'seating_capacity') {
+                $attributes[$attribute] = $raw;
+
+                continue;
+            }
+
+            $attributes[$attribute] = is_numeric($raw) ? (float) $raw : null;
+        }
+
+        return $attributes;
     }
 
     /**

@@ -1,160 +1,160 @@
-﻿1Aircraft Name;Normal Cruise Speed
-Airbus ACJ319;470
-Airbus ACJ320;470
-Airbus ACJ321;444
-Beechcraft 1A;406
-Beechcraft Beechjet 400;446
-Beechcraft Beechjet 400A;449
-Beechcraft Hawker 1000;440
-Beechcraft Hawker 4000;470
-Beechcraft Hawker 400XP;450
-Beechcraft Hawker 750;430
-Beechcraft Hawker 800;429
-Beechcraft Hawker 850XP;430
-Beechcraft Hawker 900XP;430
-Beechcraft King Air 200;272
-Beechcraft King Air 250;301
-Beechcraft King Air 300;312
-Beechcraft King Air 300LW;312
-Beechcraft King Air 350;310
-Beechcraft King Air 350ER;303
-Beechcraft Premier I;426
-Beechcraft Premier IA;426
-Boeing BBJ;470
-Boeing BBJ 2;454
-Boeing BBJ 3;454
-Bombardier Challenger 300;459
-Bombardier Challenger 350;459
-Bombardier Challenger 3500;459
-Bombardier Challenger 600;458
-Bombardier Challenger 601;443
-Bombardier Challenger 604;459
-Bombardier Challenger 605;459
-Bombardier Challenger 650;459
-Bombardier Challenger 850;442
-Bombardier Global 5000;488
-Bombardier Global 5500;488
-Bombardier Global 6000;488
-Bombardier Global 7500;488
-Bombardier Global 8000;488
-Bombardier Global Express;488
-Bombardier Global Express XRS;488
-Bombardier Learjet 31;441
-Bombardier Learjet 35A;436
-Bombardier Learjet 36A;436
-Bombardier Learjet 40;436
-Bombardier Learjet 40XR;436
-Bombardier Learjet 45;436
-Bombardier Learjet 45XR;436
-Bombardier Learjet 55/55B;447
-Bombardier Learjet 55C;447
-Bombardier Learjet 60;436
-Bombardier Learjet 60XR;436
-Bombardier Learjet 70;436
-Bombardier Learjet 75;436
-Cessna Citation 500;332
-Cessna Citation Bravo;405
-Cessna Citation CJ1;381
-Cessna Citation CJ1+;389
-Cessna Citation CJ2;413
-Cessna Citation CJ2+;413
-Cessna Citation CJ3;417
-Cessna Citation CJ3+;417
-Cessna Citation CJ4;454
-Cessna Citation Encore;430
-Cessna Citation Encore+;430
-Cessna Citation Excel;433
-Cessna Citation I/ISP;345
-Cessna Citation II/IISP;355
-Cessna Citation III;427
-Cessna Citation Jet;364
-Cessna Citation Latitude;429
-Cessna Citation Longitude;475
-Cessna Citation M2;379
-Cessna Citation Mustang;340
-Cessna Citation S/II;386
-Cessna Citation Sovereign;459
-Cessna Citation Sovereign+;459
-Cessna Citation Ultra;430
-Cessna Citation V;397
-Cessna Citation VI;427
-Cessna Citation VII;452
-Cessna Citation X;525
-Cessna Citation X+;527
-Cessna Citation XLS;433
-Cessna Citation XLS+;440
-Cirrus SR20;160
-Cirrus SR22;175
-Cirrus SR22T;213
-Cirrus Vision SF50;295
-Daher-Socata TBM 850;316
-Daher-Socata TBM 900;318
-Daher-Socata TBM 910;318
-Daher-Socata TBM 930;318
-Dassault Aviation Falcon 10;452
-Dassault Aviation Falcon 100;452
-Dassault Aviation Falcon 200;440
-Dassault Aviation Falcon 2000;459
-Dassault Aviation Falcon 2000DX;459
-Dassault Aviation Falcon 2000EX;459
-Dassault Aviation Falcon 2000EX EASy;459
-Dassault Aviation Falcon 2000LX;453
-Dassault Aviation Falcon 2000LXS;453
-Dassault Aviation Falcon 2000S;453
-Dassault Aviation Falcon 50;431
-Dassault Aviation Falcon 7X;488
-Dassault Aviation Falcon 8X;488
-Dassault Aviation Falcon 900;456
-Dassault Aviation Falcon 900B;466
-Dassault Aviation Falcon 900C;466
-Dassault Aviation Falcon 900DX;459
-Dassault Aviation Falcon 900EX;459
-Dassault Aviation Falcon 900EX EASy;459
-Dassault Aviation Falcon 900LX;459
-Dassault Aviation Falcon Falcon 10X;500
-Dassault Aviation Falcon Falcon 8X;488
-Embraer 135;447
-Embraer Legacy 450;459
-Embraer Legacy 500;459
-Embraer Legacy 600;447
-Embraer Legacy 650;447
-Embraer Legacy 650E;447
-Embraer Lineage 1000;459
-Embraer Lineage 1000E;459
-Embraer Phenom 100;371
-Embraer Phenom 100E;371
-Embraer Phenom 100EV;390
-Embraer Phenom 300;430
-Embraer Phenom 300E;430
-Embraer Praetor 500;466
-Embraer Praetor 600;466
-Gulfstream G III;478
-Gulfstream G IV;470
-Gulfstream G IV;476
-Gulfstream G IV SP;476
-Gulfstream G V;488
-Gulfstream G150;459
-Gulfstream G200;459
-Gulfstream G280;470
-Gulfstream G300;476
-Gulfstream G350;476
-Gulfstream G400;476
-Gulfstream G450;476
-Gulfstream G500;488
-Gulfstream G550;488
-Gulfstream G600;490
-Gulfstream G650;488
-Gulfstream G650ER;490
-Gulfstream G700;490
-HondaJet;422
-Nextant Aerospace 400XT;460
-Nextant Aerospace 400XTi;447
-One Aviation Eclipse 500;369
-One Aviation Eclipse 550;369
-One Aviation Total Eclipse 500;369
-Piaggio Avanti P180;354
-Piaggio Avanti P180 EVO;346
-Piaggio Avanti P180 II;346
-Pilatus PC 12 NG;280
-Pilatus PC-12;261
-Pilatus PC-24;440
+﻿Aircraft Name;Normal Cruise Speed (kt);Cabin Width (m);Cabin Height (m);Cabin Length (m);Cabin Volume (m3);Baggage Capacity (m3);Seating Capacity
+Airbus ACJ319;470;3.70;2.13;23.78;174.00;32.00;19–39 (VIP layout dependent)
+Airbus ACJ320;470;3.70;2.13;27.51;200.00;37.00;19–50 (VIP layout dependent)
+Airbus ACJ321;444;3.70;2.13;34.44;250.00;44.00;19–50 (VIP layout dependent)
+Beechcraft 1A;406;1.46;1.42;5.49;9.30;1.40;7–9
+Beechcraft Beechjet 400;446;1.46;1.42;5.49;9.30;1.40;7–9
+Beechcraft Beechjet 400A;449;1.46;1.42;5.49;9.30;1.40;7–9
+Beechcraft Hawker 1000;440;1.83;1.73;7.32;21.90;1.60;8–9
+Beechcraft Hawker 4000;470;1.90;1.75;7.16;27.50;3.50;8–9
+Beechcraft Hawker 400XP;450;1.46;1.42;5.49;9.30;1.40;7–9
+Beechcraft Hawker 750;430;1.83;1.73;6.50;19.50;1.40;8
+Beechcraft Hawker 800;429;1.83;1.73;7.32;21.90;1.60;8–9
+Beechcraft Hawker 850XP;430;1.83;1.73;7.32;21.90;1.60;8–9
+Beechcraft Hawker 900XP;430;1.83;1.73;7.32;21.90;1.60;8–9
+Beechcraft King Air 200;272;1.36;1.50;5.05;8.20;1.61;7–9
+Beechcraft King Air 250;301;1.36;1.50;5.05;8.20;1.61;7–9
+Beechcraft King Air 300;312;1.36;1.50;5.05;8.20;1.61;7–9
+Beechcraft King Air 300LW;312;1.36;1.50;5.05;8.20;1.61;7–9
+Beechcraft King Air 350;310;1.36;1.50;6.14;9.80;2.55;8–11
+Beechcraft King Air 350ER;303;1.36;1.50;6.14;9.80;2.55;8–11
+Beechcraft Premier I;426;1.68;1.47;5.61;11.00;1.50;6–7
+Beechcraft Premier IA;426;1.68;1.47;5.61;11.00;1.50;6–7
+Boeing BBJ;470;3.53;2.13;27.00;180.00;45.00;8–50 (VIP layout dependent)
+Boeing BBJ 2;454;3.53;2.13;32.20;205.00;50.00;8–63 (VIP layout dependent)
+Boeing BBJ 3;454;3.53;2.13;36.00;220.00;52.00;8–63 (VIP layout dependent)
+Bombardier Challenger 300;459;2.14;1.85;7.65;22.00;3.60;8–9
+Bombardier Challenger 350;459;2.14;1.85;7.65;22.70;3.98;8–10
+Bombardier Challenger 3500;459;2.14;1.85;7.65;22.70;3.98;8–10
+Bombardier Challenger 600;458;2.41;1.85;8.31;26.40;3.85;9–11
+Bombardier Challenger 601;443;2.41;1.85;8.31;26.40;3.85;9–11
+Bombardier Challenger 604;459;2.41;1.85;8.31;26.40;3.85;9–11
+Bombardier Challenger 605;459;2.41;1.85;8.31;26.40;3.85;9–11
+Bombardier Challenger 650;459;2.41;1.85;8.31;26.40;3.85;9–11
+Bombardier Challenger 850;442;2.24;1.86;12.34;50.00;10.00;14–19
+Bombardier Global 5000;488;2.49;1.91;13.06;46.00;4.20;13–16
+Bombardier Global 5500;488;2.49;1.91;13.06;46.00;4.20;13–16
+Bombardier Global 6000;488;2.49;1.91;15.47;54.00;5.40;13–17
+Bombardier Global 7500;488;2.49;1.95;17.68;63.20;6.50;14–19
+Bombardier Global 8000;488;2.49;1.95;17.68;63.20;6.50;14–19
+Bombardier Global Express;488;2.49;1.91;14.02;50.00;5.20;13–16
+Bombardier Global Express XRS;488;2.49;1.91;14.02;50.00;5.20;13–16
+Bombardier Learjet 31;441;1.50;1.35;4.27;6.30;0.79;6–8
+Bombardier Learjet 35A;436;1.50;1.35;4.88;7.00;0.79;6–8
+Bombardier Learjet 36A;436;1.50;1.35;4.88;7.00;0.79;6–8
+Bombardier Learjet 40;436;1.50;1.50;5.64;8.50;1.13;6–7
+Bombardier Learjet 40XR;436;1.50;1.50;5.64;8.50;1.13;6–7
+Bombardier Learjet 45;436;1.50;1.50;6.71;9.90;1.13;8–9
+Bombardier Learjet 45XR;436;1.50;1.50;6.71;9.90;1.13;8–9
+Bombardier Learjet 55/55B;447;1.73;1.75;6.10;11.70;1.50;8–9
+Bombardier Learjet 55C;447;1.73;1.75;6.10;11.70;1.50;8–9
+Bombardier Learjet 60;436;1.73;1.75;6.36;12.40;1.68;7–8
+Bombardier Learjet 60XR;436;1.73;1.75;6.36;12.40;1.68;7–8
+Bombardier Learjet 70;436;1.50;1.50;5.64;8.50;1.13;6–7
+Bombardier Learjet 75;436;1.50;1.50;6.71;9.90;1.13;8–9
+Cessna Citation 500;332;1.36;1.32;4.06;5.40;0.68;5–6
+Cessna Citation Bravo;405;1.50;1.44;5.31;8.10;1.13;7–8
+Cessna Citation CJ1;381;1.44;1.44;4.27;6.40;0.65;5–6
+Cessna Citation CJ1+;389;1.44;1.44;4.27;6.40;0.65;5–6
+Cessna Citation CJ2;413;1.44;1.44;5.23;8.00;0.85;6–7
+Cessna Citation CJ2+;413;1.44;1.44;5.23;8.00;0.85;6–7
+Cessna Citation CJ3;417;1.50;1.44;6.10;9.40;1.13;7–8
+Cessna Citation CJ3+;417;1.50;1.44;6.10;9.40;1.13;7–8
+Cessna Citation CJ4;454;1.50;1.44;6.71;10.50;1.56;7–9
+Cessna Citation Encore;430;1.50;1.44;5.31;8.10;1.13;7–8
+Cessna Citation Encore+;430;1.50;1.44;5.31;8.10;1.13;7–8
+Cessna Citation Excel;433;1.50;1.44;6.71;10.60;1.70;7–9
+Cessna Citation I/ISP;345;1.36;1.32;4.06;5.40;0.68;5–6
+Cessna Citation II/IISP;355;1.36;1.32;4.72;6.50;0.79;6–7
+Cessna Citation III;427;1.63;1.55;7.16;13.00;1.13;8–9
+Cessna Citation Jet;364;1.44;1.44;4.27;6.40;0.65;5–6
+Cessna Citation Latitude;429;1.75;1.75;6.75;11.90;2.00;8–9
+Cessna Citation Longitude;475;1.85;1.75;8.53;15.50;2.72;8–12
+Cessna Citation M2;379;1.44;1.44;4.27;6.40;0.65;5–6
+Cessna Citation Mustang;340;1.35;1.35;3.87;5.10;0.43;4–5
+Cessna Citation S/II;386;1.36;1.32;4.72;6.50;0.79;6–7
+Cessna Citation Sovereign;459;1.63;1.55;7.85;14.30;2.15;9–12
+Cessna Citation Sovereign+;459;1.63;1.55;7.85;14.30;2.15;9–12
+Cessna Citation Ultra;430;1.50;1.44;5.31;8.10;1.13;7–8
+Cessna Citation V;397;1.36;1.32;4.72;6.50;0.79;6–7
+Cessna Citation VI;427;1.63;1.55;7.16;13.00;1.13;8–9
+Cessna Citation VII;452;1.63;1.55;7.16;13.00;1.16;8–9
+Cessna Citation X;525;1.63;1.55;7.29;13.60;1.40;8–9
+Cessna Citation X+;527;1.63;1.55;7.29;13.60;1.40;8–9
+Cessna Citation XLS;433;1.50;1.44;6.71;10.60;1.70;7–9
+Cessna Citation XLS+;440;1.50;1.44;6.71;10.60;1.70;7–9
+Cirrus SR20;160;1.19;1.24;2.29;3.20;0.34;4 (incl. pilot)
+Cirrus SR22;175;1.19;1.24;2.29;3.20;0.34;4 (incl. pilot)
+Cirrus SR22T;213;1.19;1.24;2.29;3.20;0.34;4 (incl. pilot)
+Cirrus Vision SF50;295;1.52;1.22;2.79;4.50;0.50;5–7
+Daher-Socata TBM 850;316;1.20;1.22;3.50;3.90;1.13;4–6
+Daher-Socata TBM 900;318;1.20;1.22;3.50;3.90;1.13;4–6
+Daher-Socata TBM 910;318;1.20;1.22;3.50;3.90;1.13;4–6
+Daher-Socata TBM 930;318;1.20;1.22;3.50;3.90;1.13;4–6
+Dassault Aviation Falcon 10;452;1.50;1.36;4.71;7.00;0.62;7
+Dassault Aviation Falcon 100;452;1.50;1.36;4.71;7.00;0.62;7
+Dassault Aviation Falcon 200;440;1.50;1.36;4.71;7.00;0.62;7
+Dassault Aviation Falcon 2000;459;2.34;1.88;7.98;29.30;3.63;8–10
+Dassault Aviation Falcon 2000DX;459;2.34;1.88;7.98;29.30;3.63;8–10
+Dassault Aviation Falcon 2000EX;459;2.34;1.88;7.98;29.30;3.63;8–10
+Dassault Aviation Falcon 2000EX EASy;459;2.34;1.88;7.98;29.30;3.63;8–10
+Dassault Aviation Falcon 2000LX;453;2.34;1.88;7.98;29.30;3.63;8–10
+Dassault Aviation Falcon 2000LXS;453;2.34;1.88;7.98;29.30;3.63;8–10
+Dassault Aviation Falcon 2000S;453;2.34;1.88;7.98;29.30;3.63;8–10
+Dassault Aviation Falcon 50;431;2.20;1.80;7.55;24.50;2.50;8–9
+Dassault Aviation Falcon 7X;488;2.34;1.88;11.63;39.10;3.50;12–16
+Dassault Aviation Falcon 8X;488;2.34;1.88;12.97;42.90;4.10;12–16
+Dassault Aviation Falcon 900;456;2.34;1.88;9.91;32.80;3.50;8–12
+Dassault Aviation Falcon 900B;466;2.34;1.88;9.91;32.80;3.50;8–12
+Dassault Aviation Falcon 900C;466;2.34;1.88;9.91;32.80;3.50;8–12
+Dassault Aviation Falcon 900DX;459;2.34;1.88;9.91;32.80;3.50;8–12
+Dassault Aviation Falcon 900EX;459;2.34;1.88;9.91;32.80;3.50;8–12
+Dassault Aviation Falcon 900EX EASy;459;2.34;1.88;9.91;32.80;3.50;8–12
+Dassault Aviation Falcon 900LX;459;2.34;1.88;9.91;32.80;3.50;8–12
+Dassault Aviation Falcon Falcon 10X;500;2.77;1.98;13.50;74.00;7.00;13–19
+Dassault Aviation Falcon Falcon 8X;488;2.34;1.88;12.97;42.90;4.10;12–16
+Embraer 135;447;2.02;1.80;12.70;40.00;5.00;14–19
+Embraer Legacy 450;459;1.83;1.75;7.35;25.90;2.70;7–9
+Embraer Legacy 500;459;1.83;1.75;9.73;31.30;3.40;9–12
+Embraer Legacy 600;447;1.83;1.75;10.71;32.30;4.00;13–14
+Embraer Legacy 650;447;1.83;1.75;10.71;32.30;4.00;13–14
+Embraer Legacy 650E;447;1.83;1.75;10.71;32.30;4.00;13–14
+Embraer Lineage 1000;459;2.20;1.86;20.83;88.00;8.90;13–19
+Embraer Lineage 1000E;459;2.20;1.86;20.83;88.00;8.90;13–19
+Embraer Phenom 100;371;1.50;1.45;4.66;7.50;1.00;4–6
+Embraer Phenom 100E;371;1.50;1.45;4.66;7.50;1.00;4–6
+Embraer Phenom 100EV;390;1.50;1.45;4.66;7.50;1.00;4–6
+Embraer Phenom 300;430;1.55;1.50;7.64;12.20;2.40;6–9
+Embraer Phenom 300E;430;1.55;1.50;7.64;12.20;2.40;6–9
+Embraer Praetor 500;466;1.83;1.75;8.60;28.00;3.40;7–9
+Embraer Praetor 600;466;1.83;1.75;10.40;32.40;3.90;8–12
+Gulfstream G III;478;2.29;1.86;8.61;36.80;3.29;8–19
+Gulfstream G IV;470;2.29;1.86;10.29;45.90;4.19;8–19
+Gulfstream G IV;476;2.29;1.86;10.29;45.90;4.19;8–19
+Gulfstream G IV SP;476;2.29;1.86;10.29;45.90;4.19;8–19
+Gulfstream G V;488;2.29;1.86;13.87;49.90;5.10;12–19
+Gulfstream G150;459;1.90;1.75;7.32;25.60;2.55;6–8
+Gulfstream G200;459;2.06;1.80;8.31;29.90;3.51;8–10
+Gulfstream G280;470;2.03;1.83;9.06;31.40;3.71;8–10
+Gulfstream G300;476;2.29;1.86;10.29;45.90;4.19;8–19
+Gulfstream G350;476;2.29;1.86;10.29;45.90;4.19;8–19
+Gulfstream G400;476;2.29;1.86;10.29;45.90;4.19;8–19
+Gulfstream G450;476;2.29;1.86;10.29;45.90;4.19;8–19
+Gulfstream G500;488;2.49;1.91;15.09;52.90;6.00;8–19
+Gulfstream G550;488;2.29;1.86;15.09;50.60;6.03;14–19
+Gulfstream G600;490;2.49;1.91;17.86;60.10;6.40;9–19
+Gulfstream G650;488;2.59;1.91;16.87;62.10;6.68;11–19
+Gulfstream G650ER;490;2.59;1.91;16.87;62.10;6.68;11–19
+Gulfstream G700;490;2.69;1.91;19.28;68.90;7.65;13–19
+HondaJet;422;1.50;1.47;4.50;7.10;1.00;4–5
+Nextant Aerospace 400XT;460;1.46;1.42;5.49;9.30;1.40;7–9
+Nextant Aerospace 400XTi;447;1.46;1.42;5.49;9.30;1.40;7–9
+One Aviation Eclipse 500;369;1.36;1.19;3.15;3.90;0.28;4–5
+One Aviation Eclipse 550;369;1.36;1.19;3.15;3.90;0.28;4–5
+One Aviation Total Eclipse 500;369;1.36;1.19;3.15;3.90;0.28;4–5
+Piaggio Avanti P180;354;1.85;1.44;6.78;11.00;1.10;6–9
+Piaggio Avanti P180 EVO;346;1.85;1.44;6.78;11.00;1.10;6–9
+Piaggio Avanti P180 II;346;1.85;1.44;6.78;11.00;1.10;6–9
+Pilatus PC 12 NG;280;1.60;1.53;5.43;9.50;3.00;6–9
+Pilatus PC-12;261;1.60;1.53;5.43;9.50;3.00;6–9
+Pilatus PC-24;440;1.60;1.52;7.18;13.00;2.40;6–10

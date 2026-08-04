@@ -17,6 +17,29 @@
         : null;
     $termsPath = app_path('terms/terms_and_conditions.txt');
     $termsContent = is_file($termsPath) ? trim(file_get_contents($termsPath)) : null;
+    $termsParagraphs = [];
+    if ($termsContent) {
+        foreach (preg_split('/\n\s*\n/', $termsContent) as $block) {
+            $block = trim($block, "\n");
+            if ($block === '') {
+                continue;
+            }
+            $lines = explode("\n", $block);
+            $firstLine = trim($lines[0]);
+            $isTitle = (bool) preg_match('/^[A-Z][A-Z0-9 ,.\'&\-]{3,}$/', $firstLine);
+            $isSectionHeading = (bool) preg_match('/^\d+\.\s+\S.*$/', $firstLine);
+            $isHeading = $isTitle || $isSectionHeading;
+            $bodyLines = array_values(array_filter(
+                array_map('trim', $isHeading ? array_slice($lines, 1) : $lines),
+                fn ($line) => $line !== ''
+            ));
+            $termsParagraphs[] = [
+                'heading' => $isHeading ? $firstLine : null,
+                'isTitle' => $isTitle,
+                'lines' => $bodyLines,
+            ];
+        }
+    }
 ?>
 <!DOCTYPE html>
 <html>
@@ -90,7 +113,7 @@
             font-size: 14px;
             font-weight: bold;
             letter-spacing: 0.5px;
-            color: #D4C783;
+            color: #111827;
         }
 
         .header-row .logo-cell {
@@ -121,7 +144,7 @@
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.6px;
-            color: #D4C783;
+            color: #111827;
             margin-bottom: 6px;
             border-bottom: 1px solid #e5e7eb;
             padding-bottom: 4px;
@@ -234,6 +257,43 @@
             font-style: italic;
         }
 
+        .terms-block {
+            margin-top: 9px;
+        }
+
+        .terms-block:first-child {
+            margin-top: 0;
+        }
+
+        .terms-block.has-heading {
+            margin-top: 20px;
+        }
+
+        .terms-block.has-heading:first-child {
+            margin-top: 0;
+        }
+
+        .terms-heading {
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .terms-title {
+            text-align: center;
+        }
+
+        .terms-body {
+            color: #374151;
+        }
+
+        .terms-line {
+            margin: 0 0 9px;
+        }
+
+        .terms-line:last-child {
+            margin-bottom: 0;
+        }
+
         .section-aircraft-price {
             margin-bottom: 12px;
         }
@@ -266,6 +326,7 @@
 
         .terms-page {
             page-break-before: always;
+            font-size: 9px;
         }
 
         .terms-repeating-header {
@@ -487,9 +548,21 @@
 
     <div class="terms-page">
         <div class="section">
-            <div class="section-title">Terms and Conditions</div>
-            @if ($termsContent)
-                <div class="text-block">{{ $termsContent }}</div>
+            @if ($termsParagraphs)
+                @foreach ($termsParagraphs as $paragraph)
+                    <div class="terms-block @if ($paragraph['heading']) has-heading @endif @if ($paragraph['isTitle']) terms-title @endif">
+                        @if ($paragraph['heading'])
+                            <div class="terms-heading">{{ $paragraph['heading'] }}</div>
+                        @endif
+                        @if ($paragraph['lines'])
+                            <div class="terms-body">
+                                @foreach ($paragraph['lines'] as $line)
+                                    <p class="terms-line">{{ $line }}</p>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
             @else
                 <p class="placeholder-note">[Terms and conditions file not found — add it at app/terms/terms_and_conditions.txt]</p>
             @endif

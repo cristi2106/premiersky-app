@@ -37,7 +37,10 @@ class AircraftSpeedReferenceController extends Controller
 
     /**
      * Return aircraft types matching a search query, for the searchable
-     * select used by the Flight Calculator (and, later, Contracts).
+     * select used by the Flight Calculator, Contracts, and Tails. Cabin
+     * dimensions are included so Tails can show them as read-only
+     * reference info as soon as a type is picked; cruise_speed_knots is
+     * deliberately left out since it isn't relevant to every consumer.
      */
     public function search(Request $request): JsonResponse
     {
@@ -48,7 +51,16 @@ class AircraftSpeedReferenceController extends Controller
                 $query->where('type_name', 'like', "%{$search}%");
             })
             ->orderBy('type_name')
-            ->get(['id', 'type_name']);
+            ->get([
+                'id',
+                'type_name',
+                'cabin_width_m',
+                'cabin_height_m',
+                'cabin_length_m',
+                'cabin_volume_m3',
+                'baggage_capacity_m3',
+                'seating_capacity',
+            ]);
 
         return response()->json($aircraftSpeedReferences);
     }
@@ -119,6 +131,12 @@ class AircraftSpeedReferenceController extends Controller
                 Rule::unique('aircraft_speed_reference', 'type_name')->ignore($aircraftSpeedReference?->id),
             ],
             'cruise_speed_knots' => ['required', 'integer', 'min:1', 'max:2000'],
+            'cabin_width_m' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
+            'cabin_height_m' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
+            'cabin_length_m' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
+            'cabin_volume_m3' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
+            'baggage_capacity_m3' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
+            'seating_capacity' => ['nullable', 'string', 'max:100'],
         ]);
     }
 }

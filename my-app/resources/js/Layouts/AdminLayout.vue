@@ -53,6 +53,12 @@ const navigation = [
         active: 'contracts.*',
         icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
     },
+    {
+        name: 'Tails',
+        route: 'tails.index',
+        active: 'tails.*',
+        icon: 'M7 7h.01M7 3h5.586a1 1 0 01.707.293l6.414 6.414a1 1 0 010 1.414l-8.586 8.586a1 1 0 01-1.414 0l-6.414-6.414A1 1 0 013 12.586V7a4 4 0 014-4z',
+    },
 ];
 </script>
 

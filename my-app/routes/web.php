@@ -7,6 +7,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\FlightCalculatorController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TailController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -38,6 +39,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('charter-fleet', [CharterFleetController::class, 'index'])->name('charter-fleet.index');
     Route::post('charter-fleet/sync', [CharterFleetController::class, 'sync'])->name('charter-fleet.sync');
+
+    Route::resource('tails', TailController::class)->except('show');
 });
 
 require __DIR__.'/auth.php';

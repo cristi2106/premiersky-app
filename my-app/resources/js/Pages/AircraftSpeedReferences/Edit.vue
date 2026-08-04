@@ -16,6 +16,12 @@ const props = defineProps({
 const form = useForm({
     type_name: props.aircraftSpeedReference.type_name ?? '',
     cruise_speed_knots: props.aircraftSpeedReference.cruise_speed_knots ?? '',
+    cabin_width_m: props.aircraftSpeedReference.cabin_width_m ?? '',
+    cabin_height_m: props.aircraftSpeedReference.cabin_height_m ?? '',
+    cabin_length_m: props.aircraftSpeedReference.cabin_length_m ?? '',
+    cabin_volume_m3: props.aircraftSpeedReference.cabin_volume_m3 ?? '',
+    baggage_capacity_m3: props.aircraftSpeedReference.baggage_capacity_m3 ?? '',
+    seating_capacity: props.aircraftSpeedReference.seating_capacity ?? '',
 });
 
 const submit = () => {
@@ -52,6 +58,85 @@ const submit = () => {
                         class="mt-1 block w-full"
                     />
                     <InputError class="mt-2" :message="form.errors.cruise_speed_knots" />
+                </div>
+
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <InputLabel for="cabin_width_m" value="Cabin Width (m)" />
+                        <TextInput
+                            id="cabin_width_m"
+                            v-model="form.cabin_width_m"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            class="mt-1 block w-full"
+                        />
+                        <InputError class="mt-2" :message="form.errors.cabin_width_m" />
+                    </div>
+
+                    <div>
+                        <InputLabel for="cabin_height_m" value="Cabin Height (m)" />
+                        <TextInput
+                            id="cabin_height_m"
+                            v-model="form.cabin_height_m"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            class="mt-1 block w-full"
+                        />
+                        <InputError class="mt-2" :message="form.errors.cabin_height_m" />
+                    </div>
+
+                    <div>
+                        <InputLabel for="cabin_length_m" value="Cabin Length (m)" />
+                        <TextInput
+                            id="cabin_length_m"
+                            v-model="form.cabin_length_m"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            class="mt-1 block w-full"
+                        />
+                        <InputError class="mt-2" :message="form.errors.cabin_length_m" />
+                    </div>
+
+                    <div>
+                        <InputLabel for="cabin_volume_m3" value="Cabin Volume (m3)" />
+                        <TextInput
+                            id="cabin_volume_m3"
+                            v-model="form.cabin_volume_m3"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            class="mt-1 block w-full"
+                        />
+                        <InputError class="mt-2" :message="form.errors.cabin_volume_m3" />
+                    </div>
+
+                    <div>
+                        <InputLabel for="baggage_capacity_m3" value="Baggage Capacity (m3)" />
+                        <TextInput
+                            id="baggage_capacity_m3"
+                            v-model="form.baggage_capacity_m3"
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            class="mt-1 block w-full"
+                        />
+                        <InputError class="mt-2" :message="form.errors.baggage_capacity_m3" />
+                    </div>
+
+                    <div>
+                        <InputLabel for="seating_capacity" value="Seating Capacity" />
+                        <TextInput
+                            id="seating_capacity"
+                            v-model="form.seating_capacity"
+                            type="text"
+                            placeholder="8–19"
+                            class="mt-1 block w-full"
+                        />
+                        <InputError class="mt-2" :message="form.errors.seating_capacity" />
+                    </div>
                 </div>
 
                 <div class="flex items-center justify-end gap-4">

@@ -3,6 +3,7 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import TextInput from '@/Components/TextInput.vue';
+import TimeInput from '@/Components/TimeInput.vue';
 import { Head } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 
@@ -155,11 +156,9 @@ const aircraftLabel = (aircraft) => aircraft.type_name;
 
                         <div>
                             <InputLabel for="departure_time" value="Departure Time" />
-                            <TextInput
+                            <TimeInput
                                 id="departure_time"
                                 v-model="departureTime"
-                                type="time"
-                                lang="en-GB"
                                 class="mt-1 block w-full"
                             />
                         </div>

@@ -1,52 +1,71 @@
-                                        STANDARD TERMS AND CONDITIONS
+STANDARD TERMS AND CONDITIONS
 
-Booking and Contractual Relationship
-
+1. Booking and Contractual Relationship
  The Broker, Premier Sky, a company duly incorporated and existing under the laws of Romania with its registered office at Address: Str. Carpati Nr.63, Baicoi, Romania, Zip 105200, acting as an independent private aviation charter broker (hereinafter referred to as the "Broker");
 and
- The Client, whose details are set out on the first page of this Agreement (hereinafter referred to as the "Client").
- The Client hereby books the flight(s) described herein (the "Flight(s)") on the aircraft identified in this Agreement (the "Aircraft") through Premier Sky (the "Broker").
- The Broker acts solely as an independent charter intermediary between the Client and the aircraft operator (the "Carrier") and shall not be deemed the operator of the aircraft or responsible for the operation of the flight.
+ The Charterer, whose details are set out on the first page of this Agreement (hereinafter referred to as the "Charterer").
+ The Charterer hereby books the flight(s) described herein (the "Flight(s)") on the aircraft identified in this Agreement (the "Aircraft") through Premier Sky (the "Broker").
+ The Broker acts solely as an independent charter intermediary between the Charterer and the aircraft operator (the "Carrier") and shall not be deemed the operator of the aircraft or responsible for the operation of the flight.
  The carriage of the passengers shall be performed by the Carrier pursuant to the applicable air carriage agreement between the Broker and the Carrier.
  The Carrier's obligations to perform the Flight(s) shall remain subject to aircraft availability, operational approval, and any required approval from the aircraft owner, where applicable. The Broker shall not be liable in the event that the Carrier, aircraft owner, or any relevant third party declines or is unable to approve the Flight(s).
  By signing this Charter Contract the Charterer acknowledges that the content is read, understood, accepts and agrees the Charter Prices and Terms and Conditions.
+
+2. Payment
  Payment has to be made in advance, final confirmation from the Carrier's side will be given after payment confirmation.
- We kindly inform that the flight schedule may be subject to weather and airport conditions and slots and other unforeseen circumstances, which Premier Sky cannot be held responsible for. Please be advised that in order to maintain the planned departure time, passengers are requested to arrive at the departure location 30 minutes prior contracted departure time.
+ The currency for the services provided by the Carrier is defined in the Contract. The Charterer shall transfer the amount to one of Carrier's bank accounts or may pay with credit card (VISA or MasterCard plus a commission of 3%, AMEX plus a commission of 4%). Payments made in Romanian Currency (RON) will be calculated using the exchange rate issued by the National Bank of Romania one day prior to the payment day date plus 2%.
+ Domestic flights for Romania Tax Resident Charterer will be invoiced only in Romanian Currency (RON).
 
-Airport Slots and Operational Restrictions
- The Client acknowledges that all requested departure and arrival times are subject to airport slot availability, ATC requirements, airport operating restrictions, and other operational or regulatory constraints beyond the reasonable control of the Carrier and/or Premier Sky. Neither the Carrier nor Premier Sky shall be liable for the unavailability of requested airport slots, changes to allocated slots, or any airport restrictions affecting the agreed schedule.
- In the event that the requested slot or scheduled operation cannot be maintained, the Carrier and/or Premier Sky shall use commercially reasonable efforts to provide the Client with a suitable alternative, which may include an alternative departure or arrival time and/or the use of a nearby alternative airport, where operationally feasible.
- Any such change shall not constitute a breach, default, or failure to perform by the Carrier or Premier Sky. If the Client declines to proceed solely as a result of such alternative arrangement, the Charter shall be deemed cancelled by the Client and the applicable cancellation charges shall apply.
+3. Flight Schedule and Airport Slots
+ We kindly inform that the flight schedule may be subject to weather and airport conditions and slots and other unforeseen circumstances, which Premier Sky cannot be held responsible for. Please be advised that in order to maintain the planned departure time, passengers are requested to arrive at the departure location 30 minutes prior contracted departure time. Where a passenger's late arrival results in the loss of the allocated slot, re-slotting fees, positioning costs, or other charges levied by the airport or Carrier, such additional costs shall be passed through to and borne by the Charterer.
+ The Charterer acknowledges that all requested departure and arrival times are subject to airport slot availability, ATC requirements, airport operating restrictions, and other operational or regulatory constraints beyond the reasonable control of the Carrier and/or Premier Sky. Neither the Carrier nor Premier Sky shall be liable for the unavailability of requested airport slots, changes to allocated slots, or any airport restrictions affecting the agreed schedule.
+ In the event that the requested slot or scheduled operation cannot be maintained, the Carrier and/or Premier Sky shall use commercially reasonable efforts to provide the Charterer with a suitable alternative, which may include an alternative departure or arrival time and/or the use of a nearby alternative airport, where operationally feasible.
+ Any such change shall not constitute a breach, default, or failure to perform by the Carrier or Premier Sky. If the Charterer declines to proceed solely as a result of such alternative arrangement, the Charter shall be deemed cancelled by the Charterer and the applicable cancellation charges shall apply.
 
-Aircraft Substitution
- The Client acknowledges that the aircraft type and registration specified in the Charter Agreement are subject to operational availability. The Carrier reserves the right to substitute the aircraft with another aircraft of equivalent or comparable category, subject to operational requirements, safety considerations, and regulatory approval. Such substitution shall not constitute a breach or failure to perform by the Carrier or Premier Sky.
- The Client shall not increase the number of passengers specified in the Charter Agreement without the prior written approval of Premier Sky. Any additional passenger(s) accepted for carriage shall remain subject to aircraft limitations, applicable regulatory requirements, and operational availability. All additional charges, taxes, fees, and expenses arising from such increase, including destination-specific charges, shall be borne exclusively by the Client.
- The Client shall be solely responsible for providing accurate and complete passenger information required for the operation of the Charter, including full names and travel document details. The Client shall ensure that all passengers hold valid travel documents and that all information provided corresponds with the documents presented at the time of travel.
+4. Aircraft Substitution
+The Charterer acknowledges that the aircraft type and registration specified in the Charter Agreement are subject to operational availability. The Carrier reserves the right to substitute the aircraft with another aircraft of equivalent or comparable category, subject to operational requirements, safety considerations, and regulatory approval. Such substitution shall not constitute a breach or failure to perform by the Carrier or Premier Sky.
 
-Cancellation
- In the event of cancellation of the Charter by the Client, the Client shall be liable for the applicable cancellation charges set out in this Agreement. Any deposits, advance payments, or other amounts paid shall be applied in accordance with the applicable cancellation terms.
-P assengers shall be solely responsible for obtaining and maintaining any required visas, permits, authorizations, or other entry documentation required by the destination country or any transit country. The Carrier and/or Broker shall not be liable for any refusal of entry, delay, cancellation, or additional costs arising from incomplete, inaccurate, or invalid passenger documentation.
+5. Passengers
+ The Charterer shall not increase the number of passengers specified in the Charter Agreement without the prior written approval of Premier Sky. Any additional passenger(s) accepted for carriage shall remain subject to aircraft limitations, applicable regulatory requirements, and operational availability. All additional charges, taxes, fees, and expenses arising from such increase, including destination-specific charges, shall be borne exclusively by the Charterer.
+ The Charterer shall be solely responsible for providing accurate and complete passenger information required for the operation of the Charter, including full names and travel document details. The Charterer shall ensure that all passengers hold valid travel documents and that all information provided corresponds with the documents presented at the time of travel.
+ The Charterer shall provide a complete passenger list and forward all necessary information and documentation not later than 24 hours before departure or not later than the deadline set by the Carrier. The Charterer shall submit correct and complete information and ensure that the passengers hold and fulfil all travel documents/requirements such as passports, visas, vaccinations, etc. The Charterer shall bear the costs for any damage or delay arising from incorrect, incomplete, or improper information provided. The Charterer is liable for compliance with the valid currency and health regulations.
+ Passengers shall be solely responsible for obtaining and maintaining any required visas, permits, authorizations, or other entry documentation required by the destination country or any transit country. The Carrier and/or Broker shall not be liable for any refusal of entry, delay, cancellation, or additional costs arising from incomplete, inaccurate, or invalid passenger documentation.
 
-DGR:
+6. Cancellation
+ In the event of cancellation of the Charter by the Charterer, the Charterer shall be liable for the cancellation charges applicable to the relevant Flight, as set out on the first page of this Agreement. Any deposits, advance payments, or other amounts paid shall be applied in accordance with those cancellation charges.
+
+7. Force Majeure
+ Neither the Broker nor the Carrier shall be liable for any failure or delay in performing their obligations under this Agreement to the extent such failure or delay results from circumstances beyond their reasonable control, including but not limited to acts of God, war, terrorism, civil unrest, epidemic or pandemic, governmental action, airspace closure, strikes or labour disputes, and air traffic control restrictions (a "Force Majeure Event").
+ The affected party shall notify the other party as soon as reasonably practicable upon becoming aware of a Force Majeure Event. The obligations affected by the Force Majeure Event shall be suspended for its duration. If a Force Majeure Event continues for more than [ X ] days, either party may terminate the affected Flight(s) by written notice, in which case the cancellation charges under Section 6 shall not apply to that termination, and any sums paid by the Charterer in respect of the terminated Flight(s) shall be refunded, less any costs already reasonably and demonstrably incurred by the Carrier.
+
+8. Diversion
+ If for any reason the aircraft is diverted from any airfield or destination shown in the Flight Schedule to another airfield the journey to the said airfield of destination shall be deemed to be complete when the aircraft arrives at the other airfield and if the cause of diverse is independent of the Carrier's will, i.e. delays on the passengers' side, bad weather developments at the airfield of destination, the Charterer will bear all the additional costs related to the diversion.
+
+9. Additional Charges
+ Charges for ground transportation, VIP lounge, hangarage, de-icing, satellite telecommunication, Wi-Fi if applicable and customs clearance shall be at the expense of the Charterer.
+
+10. Dangerous Goods (DGR)
  Please note that that transport of dangerous goods (including, lithium batteries, flammable liquids, compressed gases, guns and ammunition) is strictly prohibited. A comprehensive
  DGR list can be found here https://www.iata.org/en/publications/dgr/ .
  Premier Sky can send you a Dangerous Goods Leaflet on your request.
- The currency for the services provided by the Carrier is defined in the Contract. The Charterer shall transfer the amount to one of Carrier's bank accounts or may pay with credit card (VISA or MasterCard plus a commission of 3%, AMEX plus a commission of 4%). Payments made in Romanian Currency (RON) will be calculated using the exchange rate issued by the National Bank of Romania one day prior to the payment day date plus 2%.
- Domestic flights for Romania Tax Resident Charterer will be invoiced only in Romanian Currency (RON).
- If for any reason the aircraft is diverted from any airfield or destination shown in the Flight Schedule to another airfield the journey to the said airfield of destination shall be deemed to be complete when the aircraft arrives at the other airfield and if the cause of diverse is independent of the Carrier's will, i.e. delays on the passengers' side, bad weather developments at the airfield of destination, the Charterer will bear all the additional costs related to the diversion.
- Charges for ground transportation, VIP lounge, hangarage, de-icing, satellite telecommunication, Wi-Fi if applicable and customs clearance shall be at the expense of the Charterer.
 
- Reg. (EU) No.2015/1998-Attachment 4-C / Passengers and Cabin Baggage / List Of Prohibited Articles
+11. Prohibited Articles — Passengers and Cabin Baggage (Reg. (EU) No.2015/1998, Attachment 4-C)
  Without prejudice to applicable safety rules, passengers are not permitted to carry the following articles into security restricted areas and on board an aircraft:
-(a) guns, firearms and other devices that discharge projectiles — devices capable, or appearing capable, of being used to cause serious injury by discharging a projectile;
-(b) stunning devices — devices designed specifically to stun or immobilize;
-c) objects with a sharp point or sharp edge — objects with a sharp point or sharp edge capable of being used to cause serious injury;
-(d) workmen's tools — tools capable of being used either to cause serious injury or to threaten the safety of aircraft;
-(e) blunt instruments — objects capable of being used to cause serious injury when used to hit;
-(f) explosives and incendiary substances and devices — explosives and incendiary substances and devices capable, or appearing capable, of being used to cause serious injury or to pose a threat to the safety of aircraft;
+  (a) guns, firearms and other devices that discharge projectiles — devices capable, or appearing capable, of being used to cause serious injury by discharging a projectile;
+  (b) stunning devices — devices designed specifically to stun or immobilize;
+  (c) objects with a sharp point or sharp edge — objects with a sharp point or sharp edge capable of being used to cause serious injury;
+  (d) workmen's tools — tools capable of being used either to cause serious injury or to threaten the safety of aircraft;
+  (e) blunt instruments — objects capable of being used to cause serious injury when used to hit;
+  (f) explosives and incendiary substances and devices — explosives and incendiary substances and devices capable, or appearing capable, of being used to cause serious injury or to pose a threat to the safety of aircraft;
 
-REG. (EU) No.2015/1998-ATTACHMENT 5-B / HOLD BAGGAGE / LIST OF PROHIBITED ARTICLES
-Passengers are not permitted to carry the following articles in their hold baggage:
-Explosives and incendiary substances and devices — explosives and incendiary substances and devices capable of being used to cause serious injury or to pose a threat to the safety of aircraft.
+12. Prohibited Articles — Hold Baggage (Reg. (EU) No.2015/1998, Attachment 5-B)
+ Passengers are not permitted to carry the following articles in their hold baggage:
+ Explosives and incendiary substances and devices — explosives and incendiary substances and devices capable of being used to cause serious injury or to pose a threat to the safety of aircraft.
 
-The Charterer shall provide a complete passenger list and forward all necessary information and documentation not later than 24 hours before departure or not later than the deadline set by the Carrier. The Charterer shall submit correct and complete information and ensure that the passengers hold and fulfil all travel documents/requirements such as passports, visas, vaccinations, etc. The Charterer shall bear the costs for any damage or delay arising from incorrect, incomplete, or improper information provided. The Charterer is liable for compliance with the valid currency and health regulations.
+13. Carrier Status and Insurance
+ The Broker shall use commercially reasonable efforts to ensure that the Flight(s) are operated by a Carrier holding a valid Air Operator Certificate (AOC) issued by a competent aeronautical authority, and holding aircraft liability and passenger liability insurance in amounts consistent with the Carrier's regulatory obligations and, where applicable, Regulation (EC) No. 785/2004 and the Montreal Convention 1999. The Charterer may request written confirmation of the Carrier's AOC status and insurance coverage prior to departure.
+
+14. Data Protection (GDPR)
+ The Broker shall process personal data provided by the Charterer and passengers (including full names, contact details, and travel document information) solely for the purposes of arranging and operating the Flight(s), complying with applicable security, customs, and border-control requirements, and as otherwise required by law, in accordance with Regulation (EU) 2016/679 (GDPR). Such data may be shared with the Carrier, relevant airports, customs and border authorities, and other parties as reasonably necessary to perform the Flight(s). The Charterer confirms that it has obtained the necessary authority and consent from each passenger to provide their personal data to the Broker for these purposes.
+
+15. Governing Law and Jurisdiction
+ This Agreement and any dispute or claim arising out of or in connection with it, including its subject matter, formation, or validity, shall be governed by and construed in accordance with the laws of Romania. The parties submit to the exclusive jurisdiction of the Romanian courts to settle any dispute arising out of or in connection with this Agreement.
