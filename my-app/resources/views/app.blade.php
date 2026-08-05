@@ -6,6 +6,16 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
+        <!-- PWA: keeps the app in standalone/full-screen mode when launched -->
+        <!-- from the home screen, instead of falling back to Safari's chrome. -->
+        <link rel="manifest" href="/manifest.webmanifest">
+        <meta name="theme-color" content="#000000">
+        <link rel="apple-touch-icon" href="/images/icons/apple-touch-icon.png">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="apple-mobile-web-app-title" content="{{ config('app.name', 'Laravel') }}">
+        <meta name="mobile-web-app-capable" content="yes">
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />

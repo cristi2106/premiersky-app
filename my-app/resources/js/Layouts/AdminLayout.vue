@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
+import BottomNav from '@/Components/BottomNav.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import SidebarNav from '@/Components/SidebarNav.vue';
@@ -234,10 +235,12 @@ const navigation = [
 
             <!-- Page content -->
             <main class="flex-1">
-                <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+                <div class="mx-auto max-w-7xl px-4 pb-44 pt-6 sm:px-6 md:pb-6 lg:px-8">
                     <slot />
                 </div>
             </main>
         </div>
+
+        <BottomNav />
     </div>
 </template>
