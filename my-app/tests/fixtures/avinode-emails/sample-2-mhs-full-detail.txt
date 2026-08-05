@@ -1,0 +1,76 @@
+Message: 6JPEE9, 04 Aug 2026 LFMN >> LATI, MHS Aviation GmbH
+04/08/2026, 12:29:33
+From: Avinode <system@avinode.com>
+Message for Trip 6JPEE9
+MHS Aviation GmbH
+
+Buyer
+Lauren Christensen, Premier Sky
+( Paynode Member )
+
+Message
+any updates
+
+Trip
+Nice, FR - Tirana, AL
+
+Itinerary
+04 Aug 2026 18:00 LFMN Nice, FR - LATI Tirana, AL 4 PAX
+
+Aircraft
+ACCEPTED 33,000 EUR Challenger 604, D-ANGB
+
+Seller
+MHS Aviation GmbH
+( Paynode Member )
+
+sales@mhs-aviation.com
+
+Office: +49 89 9733333
+
+
+
+Challenger 604, D-ANGB 33,000 EUR
+
+-26% lower than requested price
+
+
+Request ID: 166279215
+
+Year of make: 2002
+
+Max PAX: 8
+
+
+
+Itinerary Local time (UTC)
+
+Date        From      To        PAX  ETD           ETA           Tot.    NM
+04 Aug 2026 LFMN, NCE LATI, TIA 4    18:00 (16:00 UTC) 19:45 (17:45 UTC) 01:45 569
+
+
+
+Quote
+
+
+Category                            Quantity        Unit Price          Price
+NET                 1           33000 (1)         33,000 EUR
+TAX                 1           0 (2)         0 EUR
+
+                                                                    Profile Price 33,000 EUR
+
+1: Total Net
+2: Total Tax
+
+
+•&#9;Included Services: General Aviation Terminal (if available), VIP catering (full Heavy/Super Mid, cold Light Jets &gt;1hr), Flight attendant Heavy/Super Mid, Passenger taxes included (ILT, FST, UK APD)&#13;&#10;•&#9;Conditions: Subject to availability, slots, permits, parking; Tail number not guaranteed&#13;&#10;•&#9;Wi-Fi: Falcon 2000LX (D-BAHB) &amp; Falcon 900 (OE-IDM), SBB Wi-Fi, €700/100 MB&#13;&#10;•&#9;Pets: Prior approval, cleaning fee €700, not on D-BGFN&#13;&#10;•&#9;Smoking: Cleaning fee €1,000/€2,000, prohibited on OE-IDM, D-BGFN, D-CHMD, D-ISLT&#13;&#10;•&#9;Payment: Full prepayment before departure, credit card guarantee/4% surcharge&#13;&#10;•&#9;Sanctions: Lead passenger no relation to Russia; other Russian nationals non-sanctioned&#13;&#10;
+
+
+
+Created
+Tue 04 August 2026 09:28 UTC
+
+Avinode support team
+Europe, Asia, Africa, Oceana: +46-31-751 0000
+USA, Canada, Latin America, Caribbean: +1-888-972-8040
+support@avinode.com

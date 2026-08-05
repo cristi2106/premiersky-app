@@ -1,6 +1,4 @@
 <script setup>
-import Modal from '@/Components/Modal.vue';
-import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { Link } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -26,12 +24,15 @@ const tabs = [
         active: 'tails.*',
         icon: 'M7 7h.01M7 3h5.586a1 1 0 01.707.293l6.414 6.414a1 1 0 010 1.414l-8.586 8.586a1 1 0 01-1.414 0l-6.414-6.414A1 1 0 013 12.586V7a4 4 0 014-4z',
     },
+    {
+        name: 'Quotes',
+        route: 'quotes.index',
+        active: 'quotes.*',
+        icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z',
+    },
 ];
 
-const quotesIcon = 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z';
 const refreshIcon = 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15';
-
-const showQuotesComingSoon = ref(false);
 
 // A genuine browser reload — not Inertia's router.reload(), which only
 // re-fetches props over XHR and would never pick up a new JS/CSS bundle
@@ -70,17 +71,6 @@ function refreshPage() {
                 </svg>
                 <span class="sr-only">{{ tab.name }}</span>
             </Link>
-
-            <button
-                type="button"
-                class="flex flex-col items-center justify-center gap-1.5 pb-[50px] pt-3.5 text-gray-400 transition duration-150 ease-in-out hover:text-gray-600"
-                @click="showQuotesComingSoon = true"
-            >
-                <svg class="h-8 w-8 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" :d="quotesIcon" />
-                </svg>
-                <span class="sr-only">Quotes</span>
-            </button>
         </div>
 
         <!-- Refresh: an action, not a destination, so it's set apart with its own
@@ -104,16 +94,4 @@ function refreshPage() {
             <span class="sr-only">Refresh</span>
         </button>
     </nav>
-
-    <Modal :show="showQuotesComingSoon" max-width="sm" @close="showQuotesComingSoon = false">
-        <div class="p-6">
-            <h2 class="text-lg font-medium text-gray-900">Quotes</h2>
-            <p class="mt-1 text-sm text-gray-600">
-                Coming soon — the Quotes module hasn't been built yet.
-            </p>
-            <div class="mt-6 flex justify-end">
-                <SecondaryButton @click="showQuotesComingSoon = false">Got it</SecondaryButton>
-            </div>
-        </div>
-    </Modal>
 </template>

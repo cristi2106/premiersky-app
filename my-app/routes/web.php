@@ -7,6 +7,8 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\FlightCalculatorController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QuoteController;
+use App\Http\Controllers\QuoteOfferController;
 use App\Http\Controllers\TailController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -41,6 +43,9 @@ Route::middleware('auth')->group(function () {
     Route::post('charter-fleet/sync', [CharterFleetController::class, 'sync'])->name('charter-fleet.sync');
 
     Route::resource('tails', TailController::class)->except('show');
+
+    Route::get('quotes', [QuoteController::class, 'index'])->name('quotes.index');
+    Route::patch('quote-offers/{quoteOffer}', [QuoteOfferController::class, 'update'])->name('quote-offers.update');
 });
 
 require __DIR__.'/auth.php';
