@@ -5,6 +5,7 @@ import Modal from '@/Components/Modal.vue';
 import Pagination from '@/Components/Pagination.vue';
 import SearchInput from '@/Components/SearchInput.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
+import SwipeableListItem from '@/Components/SwipeableListItem.vue';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 
@@ -142,31 +143,25 @@ const deleteAircraftSpeedReference = () => {
 
             <!-- Mobile stacked cards -->
             <div class="mt-6 space-y-4 sm:hidden">
-                <div
+                <SwipeableListItem
                     v-for="aircraftSpeedReference in aircraftSpeedReferences.data"
                     :key="aircraftSpeedReference.id"
-                    class="card p-4"
+                    :delete-label="`Delete ${aircraftSpeedReference.type_name}`"
+                    @delete="confirmDeletion(aircraftSpeedReference)"
                 >
                     <p class="text-sm font-medium text-gray-900">
                         {{ aircraftSpeedReference.type_name }}
                     </p>
 
-                    <div class="mt-4 flex justify-end gap-4 text-sm font-medium">
+                    <div class="mt-4 flex justify-end text-sm font-medium">
                         <Link
                             :href="route('aircraft-speed-references.edit', aircraftSpeedReference.id)"
                             class="text-accent-600 hover:text-accent-700"
                         >
                             Edit
                         </Link>
-                        <button
-                            type="button"
-                            class="-my-1 cursor-pointer rounded-md px-2 py-1 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                            @click="confirmDeletion(aircraftSpeedReference)"
-                        >
-                            Delete
-                        </button>
                     </div>
-                </div>
+                </SwipeableListItem>
             </div>
         </template>
 

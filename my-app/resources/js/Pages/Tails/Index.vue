@@ -5,6 +5,7 @@ import Modal from '@/Components/Modal.vue';
 import Pagination from '@/Components/Pagination.vue';
 import SearchInput from '@/Components/SearchInput.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
+import SwipeableListItem from '@/Components/SwipeableListItem.vue';
 import { TAIL_AMENITIES } from '@/tailAmenities';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
@@ -201,7 +202,12 @@ const cabinFields = computed(() => {
 
             <!-- Mobile stacked cards -->
             <div class="mt-6 space-y-4 sm:hidden">
-                <div v-for="tail in tails.data" :key="tail.id" class="card p-4">
+                <SwipeableListItem
+                    v-for="tail in tails.data"
+                    :key="tail.id"
+                    :delete-label="`Delete ${tail.tail}`"
+                    @delete="confirmDeletion(tail)"
+                >
                     <button
                         type="button"
                         class="cursor-pointer text-sm font-medium text-accent-600 hover:text-accent-700 hover:underline"
@@ -229,22 +235,15 @@ const cabinFields = computed(() => {
                         </div>
                     </dl>
 
-                    <div class="mt-4 flex justify-end gap-4 text-sm font-medium">
+                    <div class="mt-4 flex justify-end text-sm font-medium">
                         <Link
                             :href="route('tails.edit', tail.id)"
                             class="text-accent-600 hover:text-accent-700"
                         >
                             Edit
                         </Link>
-                        <button
-                            type="button"
-                            class="-my-1 cursor-pointer rounded-md px-2 py-1 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                            @click="confirmDeletion(tail)"
-                        >
-                            Delete
-                        </button>
                     </div>
-                </div>
+                </SwipeableListItem>
             </div>
         </template>
 

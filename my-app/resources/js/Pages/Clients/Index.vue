@@ -3,6 +3,7 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import Modal from '@/Components/Modal.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
+import SwipeableListItem from '@/Components/SwipeableListItem.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -149,10 +150,11 @@ const deleteClient = () => {
 
             <!-- Mobile stacked cards -->
             <div class="mt-6 space-y-4 sm:hidden">
-                <div
+                <SwipeableListItem
                     v-for="client in clients"
                     :key="client.id"
-                    class="card p-4"
+                    :delete-label="`Delete ${client.company_name || 'client'}`"
+                    @delete="confirmDeletion(client)"
                 >
                     <p class="text-sm font-medium text-gray-900">
                         {{ client.company_name || 'Untitled client' }}
@@ -177,22 +179,15 @@ const deleteClient = () => {
                         </div>
                     </dl>
 
-                    <div class="mt-4 flex justify-end gap-4 text-sm font-medium">
+                    <div class="mt-4 flex justify-end text-sm font-medium">
                         <Link
                             :href="route('clients.edit', client.id)"
                             class="text-accent-600 hover:text-accent-700"
                         >
                             Edit
                         </Link>
-                        <button
-                            type="button"
-                            class="-my-1 cursor-pointer rounded-md px-2 py-1 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                            @click="confirmDeletion(client)"
-                        >
-                            Delete
-                        </button>
                     </div>
-                </div>
+                </SwipeableListItem>
             </div>
         </template>
 

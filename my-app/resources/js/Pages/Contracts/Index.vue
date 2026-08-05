@@ -5,6 +5,7 @@ import DangerButton from '@/Components/DangerButton.vue';
 import Modal from '@/Components/Modal.vue';
 import Pagination from '@/Components/Pagination.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
+import SwipeableListItem from '@/Components/SwipeableListItem.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -140,7 +141,12 @@ const deleteContract = () => {
 
             <!-- Mobile stacked cards -->
             <div class="mt-6 space-y-4 sm:hidden">
-                <div v-for="contract in contracts.data" :key="contract.id" class="card p-4">
+                <SwipeableListItem
+                    v-for="contract in contracts.data"
+                    :key="contract.id"
+                    :delete-label="`Delete contract for ${contract.client_name}`"
+                    @delete="confirmDeletion(contract)"
+                >
                     <div class="flex items-start justify-between gap-4">
                         <p class="text-sm font-medium text-gray-900">
                             {{ contract.client_name }}
@@ -166,15 +172,8 @@ const deleteContract = () => {
                         <Link :href="route('contracts.edit', contract.id)" class="text-accent-600 hover:text-accent-700">
                             Edit
                         </Link>
-                        <button
-                            type="button"
-                            class="-my-1 cursor-pointer rounded-md px-2 py-1 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                            @click="confirmDeletion(contract)"
-                        >
-                            Delete
-                        </button>
                     </div>
-                </div>
+                </SwipeableListItem>
             </div>
         </template>
 
