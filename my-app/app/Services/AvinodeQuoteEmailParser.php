@@ -73,6 +73,12 @@ class AvinodeQuoteEmailParser
                     'departure_date' => $detail['departure_date'] ?? $simpleItinerary['date'] ?? null,
                     'departure_airport' => $simpleItinerary['departure_airport'] ?? null,
                     'arrival_airport' => $simpleItinerary['arrival_airport'] ?? null,
+                    // Bare ICAO codes, separate from the display strings
+                    // above — lets a consumer (the Quotation PDF) look the
+                    // airport up against our own Airports table for its
+                    // full name/IATA code, the same way Contracts do.
+                    'departure_icao' => $simpleItinerary['departure_icao'] ?? null,
+                    'arrival_icao' => $simpleItinerary['arrival_icao'] ?? null,
                     'departure_time' => $detail['departure_time'] ?? $simpleItinerary['time'] ?? null,
                     'arrival_time' => $detail['arrival_time'] ?? null,
                     'pax' => $simpleItinerary['pax'] ?? null,
@@ -239,11 +245,19 @@ class AvinodeQuoteEmailParser
      * single line directly under an "Itinerary" heading:
      *   "04 Aug 2026 18:00 LFMN Nice, FR - LATI Tirana, AL 4 PAX"
      *
-     * @return array{date: ?string, time: ?string, departure_airport: ?string, arrival_airport: ?string, pax: ?int}
+     * @return array{date: ?string, time: ?string, departure_airport: ?string, arrival_airport: ?string, departure_icao: ?string, arrival_icao: ?string, pax: ?int}
      */
     private function extractSimpleItinerary(string $body): array
     {
-        $empty = ['date' => null, 'time' => null, 'departure_airport' => null, 'arrival_airport' => null, 'pax' => null];
+        $empty = [
+            'date' => null,
+            'time' => null,
+            'departure_airport' => null,
+            'arrival_airport' => null,
+            'departure_icao' => null,
+            'arrival_icao' => null,
+            'pax' => null,
+        ];
 
         $lines = $this->extractSection($body, 'Itinerary', 'Aircraft');
 
@@ -262,6 +276,8 @@ class AvinodeQuoteEmailParser
             'time' => $m['time'],
             'departure_airport' => trim($m['dep_icao'].' '.$m['dep_city']),
             'arrival_airport' => trim($m['arr_icao'].' '.$m['arr_city']),
+            'departure_icao' => $m['dep_icao'],
+            'arrival_icao' => $m['arr_icao'],
             'pax' => (int) $m['pax'],
         ];
     }

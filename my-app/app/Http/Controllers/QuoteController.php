@@ -35,6 +35,7 @@ class QuoteController extends Controller
         $searchScope = null;
         $searchError = null;
         $offers = [];
+        $quoteRequestData = null;
 
         if ($tripId !== '') {
             try {
@@ -54,6 +55,15 @@ class QuoteController extends Controller
                 }
 
                 $offers = $offerModels->map(fn ($offer) => $presenter->present($offer))->all();
+
+                $quoteRequest->load('client');
+                $quoteRequestData = [
+                    'id' => $quoteRequest->id,
+                    'client' => $quoteRequest->client ? [
+                        'id' => $quoteRequest->client->id,
+                        'company_name' => $quoteRequest->client->company_name,
+                    ] : null,
+                ];
             } catch (\Throwable $e) {
                 Log::error('quotes: email pull failed', [
                     'trip_id' => $tripId,
@@ -72,6 +82,7 @@ class QuoteController extends Controller
             'searchScope' => $searchScope,
             'searchError' => $searchError,
             'offers' => $offers,
+            'quoteRequest' => $quoteRequestData,
         ]);
     }
 }

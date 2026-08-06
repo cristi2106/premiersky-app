@@ -9,6 +9,7 @@ use App\Http\Controllers\FlightCalculatorController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuoteController;
 use App\Http\Controllers\QuoteOfferController;
+use App\Http\Controllers\QuoteRequestController;
 use App\Http\Controllers\TailController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -46,6 +47,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('quotes', [QuoteController::class, 'index'])->name('quotes.index');
     Route::patch('quote-offers/{quoteOffer}', [QuoteOfferController::class, 'update'])->name('quote-offers.update');
+    Route::patch('quote-requests/{quoteRequest}', [QuoteRequestController::class, 'update'])->name('quote-requests.update');
+    Route::get('quote-requests/{quoteRequest}/pdf', [QuoteRequestController::class, 'pdf'])->name('quote-requests.pdf');
 });
 
 require __DIR__.'/auth.php';

@@ -19,6 +19,7 @@ class QuoteRequest extends Model
         'avinode_trip_id',
         'client_id',
         'status',
+        'quotation_reference',
     ];
 
     public function client(): BelongsTo

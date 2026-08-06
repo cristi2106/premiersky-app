@@ -1,5 +1,6 @@
 <script setup>
 import Badge from '@/Components/Badge.vue';
+import Checkbox from '@/Components/Checkbox.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import { computed, ref, watch } from 'vue';
 
@@ -18,6 +19,8 @@ const commissionValue = ref(
 );
 const saving = ref(false);
 const savedAt = ref(null);
+const selected = ref(props.offer.selected);
+const savingSelection = ref(false);
 
 // Instant feedback as you type — mirrors QuoteOffer::calculateFinalPrice()
 // exactly, but the persisted number always comes back from the server
@@ -76,20 +79,48 @@ const save = async () => {
         saving.value = false;
     }
 };
+
+// A checkbox toggle is a single deliberate click, not something to
+// debounce like the commission text inputs — save it immediately.
+const toggleSelected = async () => {
+    savingSelection.value = true;
+
+    try {
+        const { data } = await window.axios.patch(route('quote-offers.update', props.offer.id), {
+            selected: selected.value,
+        });
+
+        props.offer.selected = data.offer.selected;
+    } finally {
+        savingSelection.value = false;
+    }
+};
+
+// Registered after toggleSelected is defined (const declarations aren't
+// hoisted) so the checkbox saves immediately on every toggle — no
+// debounce, since a click is already a single deliberate action.
+watch(selected, toggleSelected);
 </script>
 
 <template>
-    <div class="card p-4 sm:p-6">
+    <div class="card p-4 sm:p-6" :class="{ 'ring-2 ring-accent-500': selected }">
         <div class="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
-            <div>
-                <p class="text-sm font-medium text-gray-900">
-                    {{ offer.operator_name }}
-                </p>
-                <p class="mt-0.5 text-sm text-gray-600">
-                    {{ offer.aircraft_type }}
-                    <span v-if="offer.aircraft_registration">— {{ offer.aircraft_registration }}</span>
-                    <span v-else class="text-gray-400">— floating fleet, no tail assigned</span>
-                </p>
+            <div class="flex items-start gap-3">
+                <label class="flex items-center gap-2 pt-0.5" title="Include this offer when generating the client PDF">
+                    <Checkbox v-model:checked="selected" />
+                    <span class="sr-only">Include in client PDF</span>
+                </label>
+
+                <div>
+                    <p class="text-sm font-medium text-gray-900">
+                        {{ offer.operator_name }}
+                    </p>
+                    <p class="mt-0.5 text-sm text-gray-600">
+                        {{ offer.aircraft_type }}
+                        <span v-if="offer.aircraft_registration">— {{ offer.aircraft_registration }}</span>
+                        <span v-else class="text-gray-400">— floating fleet, no tail assigned</span>
+                    </p>
+                </div>
             </div>
 
             <div class="flex items-center gap-2">

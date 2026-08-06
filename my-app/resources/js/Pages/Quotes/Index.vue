@@ -2,9 +2,10 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import QuoteOfferCard from '@/Components/QuoteOfferCard.vue';
+import SearchableSelect from '@/Components/SearchableSelect.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
     tripId: {
@@ -35,6 +36,10 @@ const props = defineProps({
         type: Array,
         required: true,
     },
+    quoteRequest: {
+        type: Object,
+        default: null,
+    },
 });
 
 // Local, editable copy of the trip ID field — props.tripId only reflects
@@ -58,7 +63,7 @@ const pullEmails = () => {
             preserveState: true,
             preserveScroll: true,
             replace: true,
-            only: ['tripId', 'emails', 'totalMatches', 'truncated', 'searchScope', 'searchError', 'offers'],
+            only: ['tripId', 'emails', 'totalMatches', 'truncated', 'searchScope', 'searchError', 'offers', 'quoteRequest'],
             onFinish: () => {
                 pulling.value = false;
             },
@@ -72,6 +77,60 @@ const formatDate = (value) => {
     }
 
     return new Date(value).toLocaleString();
+};
+
+// Client-side only — the server already sends offers ordered by price
+// ascending, so re-sorting here (rather than round-tripping to the
+// server) is instant and keeps the "selected" checkboxes' saved state
+// untouched either way.
+const priceSort = ref('asc');
+
+const sortedOffers = computed(() =>
+    [...props.offers].sort((a, b) =>
+        priceSort.value === 'asc'
+            ? a.offered_price - b.offered_price
+            : b.offered_price - a.offered_price
+    )
+);
+
+// --- Client-facing quotation PDF ---
+
+const clientId = ref(props.quoteRequest?.client?.id ?? null);
+const clientLabel = (client) => client.company_name || 'Untitled client';
+
+const onClientSelect = async (option) => {
+    if (!props.quoteRequest) {
+        return;
+    }
+
+    await window.axios.patch(route('quote-requests.update', props.quoteRequest.id), {
+        client_id: option?.id ?? null,
+    });
+};
+
+// offers[].selected is mutated directly by QuoteOfferCard (same pattern it
+// already uses for commission fields) — reading it here just needs the
+// prop's reactivity, no extra event plumbing.
+const hasSelectedOffers = computed(() => props.offers.some((offer) => offer.selected));
+
+const pdfHint = computed(() => {
+    if (!clientId.value) {
+        return 'Select a client to generate a quotation PDF.';
+    }
+
+    if (!hasSelectedOffers.value) {
+        return 'Select at least one offer to generate a quotation PDF.';
+    }
+
+    return null;
+});
+
+const generatePdf = () => {
+    if (pdfHint.value || !props.quoteRequest) {
+        return;
+    }
+
+    window.open(route('quote-requests.pdf', props.quoteRequest.id), '_blank');
 };
 </script>
 
@@ -164,13 +223,73 @@ const formatDate = (value) => {
             </div>
 
             <template v-else>
+                <!-- Client-facing quotation: who it's for, and a PDF built
+                     from whichever offers are checked below. Kept separate
+                     from "Pull Emails" — generating a PDF never re-hits
+                     the mailbox. -->
+                <div class="card mt-6 p-4 sm:p-6">
+                    <h2 class="text-sm font-medium text-gray-900">Client-facing quotation</h2>
+                    <p class="mt-1 text-sm text-gray-600">
+                        Pick the client this quote is for, then generate a PDF
+                        from whichever offers have their checkbox selected
+                        below. Operator names, tail numbers and Avinode
+                        references never appear on it.
+                    </p>
+
+                    <div class="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                        <div class="max-w-sm flex-1">
+                            <InputLabel for="quote_client" value="Client" />
+                            <SearchableSelect
+                                id="quote_client"
+                                v-model="clientId"
+                                :search-url="route('clients.search')"
+                                :option-label="clientLabel"
+                                :initial-label="quoteRequest?.client ? clientLabel(quoteRequest.client) : null"
+                                placeholder="Search clients…"
+                                class="mt-1"
+                                @select="onClientSelect"
+                            >
+                                <template #option="{ option }">
+                                    <span class="text-gray-900">{{ clientLabel(option) }}</span>
+                                </template>
+                            </SearchableSelect>
+                        </div>
+
+                        <div class="text-right">
+                            <button
+                                type="button"
+                                class="inline-flex items-center justify-center rounded-lg border border-transparent bg-gray-900 px-4 py-2 text-sm font-medium text-white transition duration-150 ease-in-out hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 active:bg-gray-950 disabled:cursor-not-allowed disabled:opacity-60"
+                                :disabled="pdfHint !== null"
+                                @click="generatePdf"
+                            >
+                                Generate PDF
+                            </button>
+                            <p v-if="pdfHint" class="mt-1 text-xs text-gray-500">{{ pdfHint }}</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Offers — the parsed, structured, bookable result. Only
                      ACCEPTED aircraft lines ever become one of these; a
                      matched email that was all declines is expected to
                      contribute nothing here. -->
-                <h2 class="mt-6 text-sm font-medium text-gray-900">
-                    Offers ({{ offers.length }})
-                </h2>
+                <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+                    <h2 class="text-sm font-medium text-gray-900">
+                        Offers ({{ offers.length }})
+                    </h2>
+
+                    <div v-if="offers.length > 1" class="flex items-center gap-2">
+                        <label for="price_sort" class="text-xs text-gray-500">Sort by price</label>
+                        <select
+                            id="price_sort"
+                            v-model="priceSort"
+                            class="rounded-lg border-gray-300 py-1.5 pl-3 pr-8 text-sm text-gray-900 shadow-sm focus:border-accent-500 focus:ring-accent-500"
+                        >
+                            <option value="asc">Low to high</option>
+                            <option value="desc">High to low</option>
+                        </select>
+                    </div>
+                </div>
 
                 <div v-if="offers.length === 0" class="card mt-2">
                     <div class="p-6 text-center text-sm text-gray-500">
@@ -180,7 +299,7 @@ const formatDate = (value) => {
 
                 <div v-else class="mt-2 space-y-4">
                     <QuoteOfferCard
-                        v-for="offer in offers"
+                        v-for="offer in sortedOffers"
                         :key="offer.id"
                         :offer="offer"
                     />
