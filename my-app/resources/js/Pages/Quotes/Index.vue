@@ -32,6 +32,10 @@ const props = defineProps({
         type: String,
         default: null,
     },
+    pulled: {
+        type: Boolean,
+        default: true,
+    },
     offers: {
         type: Array,
         required: true,
@@ -40,12 +44,21 @@ const props = defineProps({
         type: Object,
         default: null,
     },
+    history: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 // Local, editable copy of the trip ID field — props.tripId only reflects
 // the last *submitted* search, so it shouldn't drive the input directly.
 const tripIdInput = ref(props.tripId);
 const pulling = ref(false);
+
+const RELOAD_KEYS = [
+    'tripId', 'emails', 'totalMatches', 'truncated', 'searchScope',
+    'searchError', 'pulled', 'offers', 'quoteRequest', 'history',
+];
 
 const pullEmails = () => {
     const value = tripIdInput.value.trim();
@@ -63,12 +76,78 @@ const pullEmails = () => {
             preserveState: true,
             preserveScroll: true,
             replace: true,
-            only: ['tripId', 'emails', 'totalMatches', 'truncated', 'searchScope', 'searchError', 'offers', 'quoteRequest'],
+            only: RELOAD_KEYS,
             onFinish: () => {
                 pulling.value = false;
             },
         }
     );
+};
+
+// --- Search history ---
+//
+// Loading a past trip ID from history is a full navigation (not a
+// preserveState partial reload like pullEmails above) — every field on
+// the page genuinely changes when switching trips, and remounting lets
+// tripIdInput, priceSort, the client picker etc. all just re-initialize
+// from the freshly loaded props instead of needing to be reset by hand.
+
+// Tracks which single history row has a request in flight, so only that
+// row's button shows a spinner rather than the whole page looking busy.
+const historyBusyId = ref(null);
+
+const viewHistoryItem = (item) => {
+    if (historyBusyId.value !== null) {
+        return;
+    }
+
+    historyBusyId.value = item.id;
+
+    router.get(
+        route('quotes.index'),
+        { trip_id: item.avinode_trip_id, view: 1 },
+        { onFinish: () => { historyBusyId.value = null; } }
+    );
+};
+
+const refreshHistoryItem = (item) => {
+    if (historyBusyId.value !== null) {
+        return;
+    }
+
+    historyBusyId.value = item.id;
+
+    router.get(
+        route('quotes.index'),
+        { trip_id: item.avinode_trip_id },
+        { onFinish: () => { historyBusyId.value = null; } }
+    );
+};
+
+const STATUS_LABELS = {
+    pending: 'Pending',
+    offers_received: 'Offers received',
+};
+
+// "04 Aug 2026 18:00 LFMN → LATI 19:35" — date/departure on the left,
+// arrival on the right, each field just dropped if the server didn't have
+// it (a trip with no offers yet sends schedule: null; an offer with no
+// quoted arrival time still shows date + departure, just no "→" side).
+const formatSchedule = (schedule) => {
+    if (!schedule) {
+        return '—';
+    }
+
+    const departure = [schedule.date, schedule.departure_time, schedule.departure_icao]
+        .filter(Boolean)
+        .join(' ');
+    const arrival = [schedule.arrival_icao, schedule.arrival_time].filter(Boolean).join(' ');
+
+    if (!departure && !arrival) {
+        return '—';
+    }
+
+    return arrival ? `${departure} → ${arrival}` : departure;
 };
 
 const formatDate = (value) => {
@@ -138,7 +217,91 @@ const generatePdf = () => {
     <Head title="Quotes" />
 
     <AdminLayout title="Quotes">
-        <div class="card p-4 sm:p-6">
+        <!-- Search history — every trip ID already searched, so none of
+             them have to be remembered or retyped. Clicking a trip ID
+             loads whatever's already stored (no mailbox hit); Refresh is
+             the explicit way to pull that trip fresh instead. -->
+        <div v-if="history.length > 0" class="card p-4 sm:p-6">
+            <h2 class="text-sm font-medium text-gray-900">Search history</h2>
+            <p class="mt-1 text-sm text-gray-600">
+                Trip IDs you've already pulled. Click one to view its offers,
+                or refresh it to pull the mailbox again.
+            </p>
+
+            <div class="mt-4 overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                    <thead>
+                        <tr class="text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                            <th class="py-2 pr-4">Trip ID</th>
+                            <th class="py-2 pr-4">Schedule</th>
+                            <th class="py-2 pr-4">First searched</th>
+                            <th class="py-2 pr-4">Offers</th>
+                            <th class="py-2 pr-4">Status</th>
+                            <th class="py-2 pr-4"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr v-for="item in history" :key="item.id">
+                            <td class="py-2 pr-4">
+                                <button
+                                    type="button"
+                                    class="font-medium text-accent-700 hover:underline disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline"
+                                    :disabled="historyBusyId !== null"
+                                    @click="viewHistoryItem(item)"
+                                >
+                                    {{ item.avinode_trip_id }}
+                                </button>
+                            </td>
+                            <td class="py-2 pr-4 whitespace-nowrap text-gray-600">{{ formatSchedule(item.schedule) }}</td>
+                            <td class="py-2 pr-4 text-gray-600">{{ formatDate(item.first_searched_at) }}</td>
+                            <td class="py-2 pr-4 text-gray-600">{{ item.offers_count }}</td>
+                            <td class="py-2 pr-4">
+                                <span
+                                    class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                                    :class="item.status === 'offers_received'
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'bg-gray-100 text-gray-700'"
+                                >
+                                    {{ STATUS_LABELS[item.status] ?? item.status }}
+                                </span>
+                            </td>
+                            <td class="py-2 pr-4 text-right">
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
+                                    :disabled="historyBusyId !== null"
+                                    @click="refreshHistoryItem(item)"
+                                >
+                                    <svg
+                                        v-if="historyBusyId === item.id"
+                                        class="-ml-0.5 mr-1.5 h-3.5 w-3.5 animate-spin"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <circle
+                                            class="opacity-25"
+                                            cx="12"
+                                            cy="12"
+                                            r="10"
+                                            stroke="currentColor"
+                                            stroke-width="4"
+                                        />
+                                        <path
+                                            class="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                        />
+                                    </svg>
+                                    Refresh
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card mt-6 p-4 sm:p-6">
             <h2 class="text-sm font-medium text-gray-900">Pull emails for a trip</h2>
             <p class="mt-1 text-sm text-gray-600">
                 Paste an Avinode trip ID below. This searches email subjects
@@ -202,21 +365,29 @@ const generatePdf = () => {
         </div>
 
         <template v-else-if="tripId">
-            <p class="mt-6 text-sm text-gray-600">
-                {{ totalMatches }} email{{ totalMatches === 1 ? '' : 's' }} found for
+            <template v-if="pulled">
+                <p class="mt-6 text-sm text-gray-600">
+                    {{ totalMatches }} email{{ totalMatches === 1 ? '' : 's' }} found for
+                    <span class="font-medium text-gray-900">{{ tripId }}</span>
+                </p>
+                <p class="mt-1 text-xs text-gray-500">
+                    <template v-if="searchScope === 'subject'">Searched subjects only.</template>
+                    <template v-else-if="searchScope === 'subject_and_body'">
+                        Subject-only search found nothing, so this also scanned message bodies.
+                    </template>
+                </p>
+                <p v-if="truncated" class="mt-1 text-sm text-amber-700">
+                    Showing the {{ emails.length }} most recent — narrow the trip ID to see the rest.
+                </p>
+            </template>
+            <p v-else class="mt-6 text-sm text-gray-600">
+                Showing previously imported offers for
                 <span class="font-medium text-gray-900">{{ tripId }}</span>
-            </p>
-            <p class="mt-1 text-xs text-gray-500">
-                <template v-if="searchScope === 'subject'">Searched subjects only.</template>
-                <template v-else-if="searchScope === 'subject_and_body'">
-                    Subject-only search found nothing, so this also scanned message bodies.
-                </template>
-            </p>
-            <p v-if="truncated" class="mt-1 text-sm text-amber-700">
-                Showing the {{ emails.length }} most recent — narrow the trip ID to see the rest.
+                from search history — the mailbox wasn't checked again. Use
+                Refresh above to pull the latest.
             </p>
 
-            <div v-if="emails.length === 0" class="card mt-4">
+            <div v-if="pulled && emails.length === 0" class="card mt-4">
                 <div class="p-6 text-center text-sm text-gray-500">
                     No emails matched "{{ tripId }}" in the subject or body.
                 </div>
@@ -308,8 +479,10 @@ const generatePdf = () => {
                 <!-- Raw matched emails — kept for reference/audit (also
                      covers matches that never produced an offer at all,
                      e.g. an all-declines thread), collapsed by default so
-                     the offers above stay the focus. -->
-                <details class="mt-6 group">
+                     the offers above stay the focus. Only meaningful right
+                     after an actual mailbox pull — a view-only history load
+                     never fetched any email bodies to show here. -->
+                <details v-if="pulled" class="mt-6 group">
                     <summary class="cursor-pointer text-sm font-medium text-gray-900 select-none">
                         Raw matched emails ({{ emails.length }})
                     </summary>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\QuoteRequest;
+use App\Services\AvinodeQuoteEmailParser;
 use App\Services\QuoteEmailSearcher;
 use App\Services\QuoteOfferImporter;
 use App\Services\QuoteOfferPresenter;
@@ -26,27 +27,48 @@ class QuoteController extends Controller
         Request $request,
         QuoteEmailSearcher $searcher,
         QuoteOfferImporter $importer,
-        QuoteOfferPresenter $presenter
+        QuoteOfferPresenter $presenter,
+        AvinodeQuoteEmailParser $parser
     ): Response {
-        $tripId = trim((string) $request->query('trip_id', ''));
+        // Uppercased once, up front, so every use below — searching,
+        // resolving/creating the QuoteRequest, and the value sent back to
+        // the page — agrees on one casing. Avinode trip IDs are otherwise
+        // case-insensitive (the mailbox search already treats them that
+        // way — see QuoteEmailSearcher), so without this, searching the
+        // same trip under different casing used to create a separate
+        // duplicate QuoteRequest each time. See resolveQuoteRequest().
+        $tripId = strtoupper(trim((string) $request->query('trip_id', '')));
+        // Set by the search-history list's trip ID link: load whatever's
+        // already stored for that trip without hitting the mailbox again.
+        // The history list's own "Refresh" button, and the main search
+        // form above, both omit this flag to run a normal live pull.
+        $viewOnly = $request->boolean('view');
         $emails = [];
         $totalMatches = 0;
         $truncated = false;
         $searchScope = null;
         $searchError = null;
+        $pulled = false;
         $offers = [];
         $quoteRequestData = null;
 
         if ($tripId !== '') {
             try {
-                $result = $searcher->search($tripId);
-                $emails = $result['emails'];
-                $totalMatches = $result['total_matches'];
-                $truncated = $result['truncated'];
-                $searchScope = $result['search_scope'];
+                $quoteRequest = $this->resolveQuoteRequest($tripId);
 
-                $quoteRequest = QuoteRequest::firstOrCreate(['avinode_trip_id' => $tripId]);
-                $importer->importFromEmails($quoteRequest, $emails);
+                // A trip ID with no history yet always pulls regardless of
+                // the view flag — there's nothing stored to show otherwise.
+                $pulled = ! $viewOnly || $quoteRequest->wasRecentlyCreated;
+
+                if ($pulled) {
+                    $result = $searcher->search($tripId);
+                    $emails = $result['emails'];
+                    $totalMatches = $result['total_matches'];
+                    $truncated = $result['truncated'];
+                    $searchScope = $result['search_scope'];
+
+                    $importer->importFromEmails($quoteRequest, $emails);
+                }
 
                 $offerModels = $quoteRequest->offers()->with('tail')->orderBy('offered_price')->get();
 
@@ -81,8 +103,144 @@ class QuoteController extends Controller
             'truncated' => $truncated,
             'searchScope' => $searchScope,
             'searchError' => $searchError,
+            'pulled' => $pulled,
             'offers' => $offers,
             'quoteRequest' => $quoteRequestData,
+            'history' => $this->searchHistory($parser),
         ]);
+    }
+
+    /**
+     * Finds the QuoteRequest for this (already-uppercased) trip ID,
+     * matched case-insensitively against whatever's stored — so "6jpee9"
+     * and "6JPEE9" always resolve to the same record — creating one only
+     * if none exists yet. New rows are created with $tripId as given
+     * (already normalized by the caller), so once every legacy duplicate
+     * below is resolved, this reduces to a plain unique lookup.
+     *
+     * A handful of QuoteRequest rows from before this normalization
+     * existed are still on file as genuine case-variant duplicates of
+     * each other (e.g. "6JPEE9" and "6jpee9") — some with real, diverged
+     * work on both copies (different commissions chosen, even a
+     * quotation PDF already issued from each), so they can't be silently
+     * merged here. Until they're resolved, more than one row can still
+     * match; the one with the most imported offers wins (freshest data
+     * as tie-break) — searchHistory() below picks the same way, so a
+     * history row and the record clicking it resolves to always describe
+     * the same data.
+     */
+    private function resolveQuoteRequest(string $tripId): QuoteRequest
+    {
+        $existing = QuoteRequest::whereRaw('UPPER(avinode_trip_id) = ?', [$tripId])
+            ->withCount('offers')
+            ->orderByDesc('offers_count')
+            ->orderByDesc('updated_at')
+            ->first();
+
+        return $existing ?? QuoteRequest::create(['avinode_trip_id' => $tripId]);
+    }
+
+    /**
+     * Every previously searched trip ID, most recent first — powers the
+     * Quotes page's search-history list, so a trip ID already looked up
+     * once never has to be remembered or retyped.
+     *
+     * Grouped case-insensitively (rather than trusting one row per trip
+     * ID) so any legacy duplicate QuoteRequest rows — see
+     * resolveQuoteRequest()'s doc comment — never show up as separate
+     * history entries. Each group collapses to whichever row has the
+     * most offers imported (freshest data as tie-break), the same pick
+     * resolveQuoteRequest() itself makes, so clicking a trip ID here
+     * always lands on the exact record this list described.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function searchHistory(AvinodeQuoteEmailParser $parser): array
+    {
+        return QuoteRequest::withCount('offers')
+            ->with(['offers' => fn ($query) => $query->orderBy('offered_price')])
+            ->orderByDesc('created_at')
+            ->limit(100)
+            ->get()
+            ->groupBy(fn (QuoteRequest $quoteRequest) => strtoupper($quoteRequest->avinode_trip_id))
+            ->map(function ($group) use ($parser) {
+                $canonical = $group->reduce(function (?QuoteRequest $best, QuoteRequest $quoteRequest) {
+                    if ($best === null || $quoteRequest->offers_count !== $best->offers_count) {
+                        return $best === null || $quoteRequest->offers_count > $best->offers_count
+                            ? $quoteRequest
+                            : $best;
+                    }
+
+                    return $quoteRequest->updated_at->gt($best->updated_at) ? $quoteRequest : $best;
+                });
+
+                return [
+                    'id' => $canonical->id,
+                    'avinode_trip_id' => strtoupper($canonical->avinode_trip_id),
+                    // The true first-searched time for this trip ID, even
+                    // if that happened on a different (duplicate) row than
+                    // the canonical one picked above.
+                    'first_searched_at' => $group->min('created_at')->toIso8601String(),
+                    'offers_count' => $canonical->offers_count,
+                    'status' => $group->contains(fn ($quoteRequest) => $quoteRequest->status === 'offers_received')
+                        ? 'offers_received'
+                        : 'pending',
+                    'schedule' => $this->resolveSchedule($canonical, $parser),
+                ];
+            })
+            ->sortByDesc('first_searched_at')
+            ->values()
+            ->all();
+    }
+
+    /**
+     * The trip's schedule for its search-history row — date, departure,
+     * and arrival, each as its own field so the page formats them rather
+     * than parsing a pre-built string.
+     *
+     * The date/departure side is available from any offer's raw_email_body
+     * (the "Itinerary" section is per email, shared by every offer parsed
+     * out of it — see AvinodeQuoteEmailParser::extractSimpleItinerary()),
+     * but an arrival time specifically requires that particular offer's
+     * own detail block — the top-level Itinerary line never carries one.
+     * Offers are checked cheapest-first (matching their display order
+     * everywhere else); the first one quoting an arrival time wins,
+     * falling back to the first offer's (arrival-time-less) schedule if
+     * none of them quoted one, or null if the trip has no offers yet.
+     *
+     * @return array{date: ?string, departure_time: ?string, departure_icao: ?string, arrival_time: ?string, arrival_icao: ?string}|null
+     */
+    private function resolveSchedule(QuoteRequest $quoteRequest, AvinodeQuoteEmailParser $parser): ?array
+    {
+        $fallback = null;
+
+        foreach ($quoteRequest->offers as $offer) {
+            $itinerary = $parser->findOfferItinerary(
+                $offer->raw_email_body,
+                $offer->aircraft_type,
+                $offer->aircraft_registration,
+                (float) $offer->offered_price
+            );
+
+            if ($itinerary === null) {
+                continue;
+            }
+
+            $schedule = [
+                'date' => $itinerary['departure_date'],
+                'departure_time' => $itinerary['departure_time'],
+                'departure_icao' => $itinerary['departure_icao'],
+                'arrival_time' => $itinerary['arrival_time'],
+                'arrival_icao' => $itinerary['arrival_icao'],
+            ];
+
+            if ($schedule['arrival_time'] !== null) {
+                return $schedule;
+            }
+
+            $fallback ??= $schedule;
+        }
+
+        return $fallback;
     }
 }
