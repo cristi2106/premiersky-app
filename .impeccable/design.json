@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-08T00:00:00Z",
+  "title": "Design System: PremierSky Admin",
+  "extensions": {
+    "colorMeta": {
+      "runway-blue-600": {
+        "role": "primary",
+        "displayName": "Runway Blue",
+        "canonical": "#2563eb",
+        "tonalRamp": ["#1e3a8a", "#1e40af", "#1d4ed8", "#2563eb", "#3b82f6", "#60a5fa", "#93c5fd", "#dbeafe"]
+      },
+      "runway-blue-500": {
+        "role": "primary-focus",
+        "displayName": "Runway Blue Focus",
+        "canonical": "#3b82f6",
+        "tonalRamp": ["#1e3a8a", "#1e40af", "#1d4ed8", "#2563eb", "#3b82f6", "#60a5fa", "#93c5fd", "#dbeafe"]
+      },
+      "night-ops-black": {
+        "role": "neutral-dark",
+        "displayName": "Night Ops Black",
+        "canonical": "#030712",
+        "tonalRamp": ["#030712", "#111827", "#1f2937", "#374151", "#4b5563", "#6b7280", "#9ca3af", "#d1d5db"]
+      },
+      "ink": {
+        "role": "neutral-strong",
+        "displayName": "Ink",
+        "canonical": "#111827",
+        "tonalRamp": ["#030712", "#111827", "#1f2937", "#374151", "#4b5563", "#6b7280", "#9ca3af", "#d1d5db"]
+      },
+      "paper": {
+        "role": "neutral-bg",
+        "displayName": "Paper",
+        "canonical": "#f9fafb",
+        "tonalRamp": ["#111827", "#374151", "#6b7280", "#9ca3af", "#d1d5db", "#e5e7eb", "#f3f4f6", "#f9fafb"]
+      },
+      "surface": {
+        "role": "neutral-surface",
+        "displayName": "Surface",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#e5e7eb", "#f3f4f6", "#f9fafb", "#fafafa", "#fcfcfc", "#fdfdfd", "#fefefe", "#ffffff"]
+      },
+      "border": {
+        "role": "neutral-border",
+        "displayName": "Border",
+        "canonical": "#e5e7eb",
+        "tonalRamp": ["#9ca3af", "#a3a9b3", "#b0b6c0", "#bfc4cd", "#cfd3da", "#dde0e5", "#e5e7eb", "#f3f4f6"]
+      },
+      "success-text": {
+        "role": "semantic-success",
+        "displayName": "Success",
+        "canonical": "#15803d",
+        "tonalRamp": ["#052e16", "#14532d", "#166534", "#15803d", "#16a34a", "#22c55e", "#86efac", "#dcfce7"]
+      },
+      "warning-text": {
+        "role": "semantic-warning",
+        "displayName": "Warning",
+        "canonical": "#a16207",
+        "tonalRamp": ["#422006", "#713f12", "#854d0e", "#a16207", "#ca8a04", "#eab308", "#fde047", "#fef9c3"]
+      },
+      "danger-text": {
+        "role": "semantic-danger",
+        "displayName": "Danger",
+        "canonical": "#dc2626",
+        "tonalRamp": ["#450a0a", "#7f1d1d", "#991b1b", "#b91c1c", "#dc2626", "#ef4444", "#fca5a5", "#fee2e2"]
+      },
+      "emblem-gold": {
+        "role": "brand-mark",
+        "displayName": "Emblem Gold",
+        "canonical": "#d4af37",
+        "tonalRamp": ["#4a3a0f", "#6e5716", "#93741e", "#b8922a", "#d4af37", "#dfc165", "#ead595", "#f5e9c5"]
+      }
+    },
+    "typographyMeta": {
+      "title": { "displayName": "Title", "purpose": "The one page title in the top bar per screen." },
+      "label": { "displayName": "Label", "purpose": "Form field labels and table column headers." },
+      "body": { "displayName": "Body", "purpose": "The dominant 14px size used almost everywhere: table cells, cards, nav, buttons, inputs." }
+    },
+    "shadows": [
+      { "name": "field", "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)", "purpose": "Text inputs, selects, searchable-select fields — reads as editable, not raised." },
+      { "name": "menu", "value": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)", "purpose": "Dropdown menus and searchable-select result lists." },
+      { "name": "overlay", "value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)", "purpose": "The modal panel — the one element genuinely interrupting the page." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "150ms ease-in-out", "purpose": "Default hover/active transition for buttons, nav items, table rows." },
+      { "name": "ease-overlay-in", "value": "300ms ease-out", "purpose": "Modal and dropdown enter transitions." },
+      { "name": "ease-overlay-out", "value": "200ms ease-in", "purpose": "Modal and dropdown leave transitions." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The default call-to-action fill: Ink, not the accent — Runway Blue is reserved for links/active-nav/focus.",
+      "html": "<button class=\"ds-btn-primary\">New Client</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid transparent; background: #111827; color: #ffffff; padding: 8px 16px; font-size: 14px; font-weight: 500; font-family: Inter, sans-serif; cursor: pointer; transition: background-color 150ms ease-in-out; } .ds-btn-primary:hover { background: #1f2937; } .ds-btn-primary:active { background: #030712; } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #3b82f6; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Bordered, white-fill counterpart for lower-emphasis actions (Cancel, dismiss).",
+      "html": "<button class=\"ds-btn-secondary\">Cancel</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid #d1d5db; background: #ffffff; color: #374151; padding: 8px 16px; font-size: 14px; font-weight: 500; font-family: Inter, sans-serif; cursor: pointer; transition: background-color 150ms ease-in-out; } .ds-btn-secondary:hover { background: #f9fafb; } .ds-btn-secondary:disabled { opacity: 0.25; cursor: not-allowed; } .ds-btn-secondary:focus-visible { outline: none; box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #3b82f6; }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Reserved strictly for destructive/irreversible actions (Delete).",
+      "html": "<button class=\"ds-btn-danger\">Delete</button>",
+      "css": ".ds-btn-danger { display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; border: 1px solid transparent; background: #dc2626; color: #ffffff; padding: 8px 16px; font-size: 14px; font-weight: 500; font-family: Inter, sans-serif; cursor: pointer; transition: background-color 150ms ease-in-out; } .ds-btn-danger:hover { background: #ef4444; } .ds-btn-danger:active { background: #b91c1c; } .ds-btn-danger:focus-visible { outline: none; box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #ef4444; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "The single field style used across every form: TextInput, SearchableSelect, and the QuoteOfferCard commission fields.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Search…\" />",
+      "css": ".ds-input { border-radius: 8px; border: 1px solid #d1d5db; background: #ffffff; color: #111827; padding: 8px 12px; font-size: 14px; font-family: Inter, sans-serif; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); } .ds-input::placeholder { color: #9ca3af; } .ds-input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 1px #3b82f6; }"
+    },
+    {
+      "name": "Badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Status pill. Five fixed variants (success/warning/danger/info/neutral) — status only, never a generic label.",
+      "html": "<span class=\"ds-badge ds-badge--success\">✓ in fleet</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; border-radius: 9999px; padding: 2px 10px; font-size: 12px; font-weight: 500; font-family: Inter, sans-serif; } .ds-badge--success { background: #dcfce7; color: #15803d; } .ds-badge--warning { background: #fef9c3; color: #a16207; } .ds-badge--danger { background: #fee2e2; color: #b91c1c; } .ds-badge--info { background: #eff6ff; color: #1d4ed8; } .ds-badge--neutral { background: #f3f4f6; color: #4b5563; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "The base surface for every dashboard widget, table wrapper, and mobile row fallback. Flat — border only, no shadow.",
+      "html": "<div class=\"ds-card\"><p class=\"ds-card-title\">Company Name</p><p class=\"ds-card-body\">Acme Aviation SRL</p></div>",
+      "css": ".ds-card { border-radius: 12px; border: 1px solid #e5e7eb; background: #ffffff; padding: 24px; } .ds-card-title { font-size: 14px; font-weight: 500; color: #111827; font-family: Inter, sans-serif; } .ds-card-body { margin-top: 4px; font-size: 14px; color: #4b5563; font-family: Inter, sans-serif; }"
+    },
+    {
+      "name": "Sidebar Nav Item",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Desktop sidebar / mobile drawer navigation row. Resting on Night Ops Black, active fills solid Runway Blue.",
+      "html": "<a href=\"#\" class=\"ds-nav-item ds-nav-item--active\"><svg class=\"ds-nav-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6\"/></svg>Dashboard</a>",
+      "css": ".ds-nav-item { display: flex; align-items: center; gap: 12px; border-radius: 8px; padding: 8px 12px; font-size: 14px; font-weight: 500; font-family: Inter, sans-serif; color: #9ca3af; text-decoration: none; background: transparent; transition: background-color 150ms ease-in-out, color 150ms ease-in-out; } .ds-nav-item:hover { background: rgba(255,255,255,0.05); color: #ffffff; } .ds-nav-item--active { background: #2563eb; color: #ffffff; } .ds-nav-icon { width: 20px; height: 20px; flex-shrink: 0; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Flight Deck",
+    "overview": "PremierSky Admin is an instrument panel, not a showroom. Every screen exists so one of a small, trusted team of brokers can do one job fast: read a quote, compare offers, price a contract, check a tail. The design has no persuasion to do and no audience to impress — it earns its keep in repetition, at a desk, many times a day, so it stays out of the way of the task.\n\nThe system is built almost entirely from two ingredients: near-black neutrals that carry structure and authority (navigation, primary actions, headings), and a single Runway Blue accent spent sparingly on the things that are genuinely interactive — active nav state, links, focus rings. Surfaces are flat by default; shadow is reserved for things that are temporarily floating above the page (a modal, a dropdown, a search menu), never for something that just sits there. Nothing about the interface itself is decorative — the one deliberately expressive mark is the black-and-gold aviation emblem in the nav, held apart from the functional palette as a fixed brand signature rather than a UI color.",
+    "keyCharacteristics": [
+      "Flat, bordered surfaces; shadow signals \"floating,\" not \"important.\"",
+      "One accent color (Runway Blue), spent only on interactive/active state.",
+      "Near-black (Night Ops Black / Ink) carries visual weight instead of the accent.",
+      "Dual layout per data view: a real <table> on desktop, stacked swipeable cards on mobile — never a squeezed table.",
+      "Small, consistent type scale dominated by 14px body text; nothing shouts."
+    ],
+    "rules": [
+      { "name": "The One Accent Rule", "body": "Runway Blue exists to answer \"is this interactive, active, or focused?\" — nothing else. Weight and hierarchy come from Ink and type size, never from adding a second accent.", "section": "colors" },
+      { "name": "The One Size Rule", "body": "14px (text-sm) is body text everywhere — table, card, form, nav. Reach for weight (font-medium/font-semibold) or color (Ink vs. Text Muted) to create emphasis before reaching for a bigger size.", "section": "typography" },
+      { "name": "The Floating-Only Rule", "body": "If it sits in the page's normal flow (a card, the sidebar, the top bar), it gets a border and no shadow. If it floats above the page (menu, modal) or is a live control (input), it gets shadow scaled to how far above the page it sits.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep Runway Blue exclusive to interactive/active/focus state — links, active nav, focus rings, the selected-offer ring.",
+      "Do use Ink (#111827), not the accent, as the default primary-button fill; the accent is a signal color, not a brand color.",
+      "Do give every card and persistent surface a border instead of a shadow; reserve shadow for menus, modals, and live form controls (The Floating-Only Rule).",
+      "Do ship both a <table> (sm: and up) and a stacked-card view (below sm) for any tabular data screen — never rely on horizontal scroll or a squeezed table on mobile.",
+      "Do keep body copy at 14px (text-sm) and reach for weight/color before size when something needs emphasis (The One Size Rule)."
+    ],
+    "donts": [
+      "Don't pull Emblem Black/Emblem Gold into UI chrome — they belong to ApplicationLogo only, never to a button, badge, or status color.",
+      "Don't add a second accent color; new statuses or emphasis states extend the existing success/warning/danger/info/neutral badge set instead.",
+      "Don't put a shadow on a surface that sits in normal page flow (cards, sidebar, top bar) — if it needs to stand out, use the border or Paper/Surface contrast instead.",
+      "Don't introduce a new radius step; every clickable/editable element is 8px, every containing surface is 12px, pills are full-round."
+    ]
+  }
+}
