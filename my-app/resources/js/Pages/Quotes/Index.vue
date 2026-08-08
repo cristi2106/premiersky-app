@@ -1,6 +1,8 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import Badge from '@/Components/Badge.vue';
 import InputLabel from '@/Components/InputLabel.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
 import QuoteOfferCard from '@/Components/QuoteOfferCard.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import TextInput from '@/Components/TextInput.vue';
@@ -129,6 +131,8 @@ const STATUS_LABELS = {
     offers_received: 'Offers received',
 };
 
+const statusVariant = (status) => (status === 'offers_received' ? 'success' : 'neutral');
+
 // "04 Aug 2026 18:00 LFMN → LATI 19:35" — date/departure on the left,
 // arrival on the right, each field just dropped if the server didn't have
 // it (a trip with no offers yet sends schedule: null; an offer with no
@@ -256,14 +260,9 @@ const generatePdf = () => {
                             <td class="py-2 pr-4 text-gray-600">{{ formatDate(item.first_searched_at) }}</td>
                             <td class="py-2 pr-4 text-gray-600">{{ item.offers_count }}</td>
                             <td class="py-2 pr-4">
-                                <span
-                                    class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
-                                    :class="item.status === 'offers_received'
-                                        ? 'bg-green-100 text-green-800'
-                                        : 'bg-gray-100 text-gray-700'"
-                                >
+                                <Badge :variant="statusVariant(item.status)">
                                     {{ STATUS_LABELS[item.status] ?? item.status }}
-                                </span>
+                                </Badge>
                             </td>
                             <td class="py-2 pr-4 text-right">
                                 <button
@@ -327,9 +326,9 @@ const generatePdf = () => {
                     />
                 </div>
 
-                <button
+                <PrimaryButton
                     type="submit"
-                    class="inline-flex items-center justify-center rounded-lg border border-transparent bg-gray-900 px-4 py-2 text-sm font-medium text-white transition duration-150 ease-in-out hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 active:bg-gray-950 disabled:cursor-not-allowed disabled:opacity-60"
+                    :class="{ 'opacity-25': pulling }"
                     :disabled="pulling || tripIdInput.trim() === ''"
                 >
                     <svg
@@ -353,7 +352,7 @@ const generatePdf = () => {
                         />
                     </svg>
                     {{ pulling ? 'Pulling…' : 'Pull Emails' }}
-                </button>
+                </PrimaryButton>
             </form>
         </div>
 
@@ -427,14 +426,14 @@ const generatePdf = () => {
                         </div>
 
                         <div class="text-right">
-                            <button
+                            <PrimaryButton
                                 type="button"
-                                class="inline-flex items-center justify-center rounded-lg border border-transparent bg-gray-900 px-4 py-2 text-sm font-medium text-white transition duration-150 ease-in-out hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 active:bg-gray-950 disabled:cursor-not-allowed disabled:opacity-60"
+                                :class="{ 'opacity-25': pdfHint !== null }"
                                 :disabled="pdfHint !== null"
                                 @click="generatePdf"
                             >
                                 Generate PDF
-                            </button>
+                            </PrimaryButton>
                             <p v-if="pdfHint" class="mt-1 text-xs text-gray-500">{{ pdfHint }}</p>
                         </div>
                     </div>

@@ -4,6 +4,7 @@ import Badge from '@/Components/Badge.vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import Modal from '@/Components/Modal.vue';
 import Pagination from '@/Components/Pagination.vue';
+import PrimaryLinkButton from '@/Components/PrimaryLinkButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import SwipeableListItem from '@/Components/SwipeableListItem.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
@@ -57,12 +58,9 @@ const deleteContract = () => {
                 {{ contracts.total }} contract{{ contracts.total === 1 ? '' : 's' }}
             </p>
 
-            <Link
-                :href="route('contracts.create')"
-                class="inline-flex items-center justify-center rounded-lg border border-transparent bg-gray-900 px-4 py-2 text-sm font-medium text-white transition duration-150 ease-in-out hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 active:bg-gray-950"
-            >
+            <PrimaryLinkButton :href="route('contracts.create')">
                 New Contract
-            </Link>
+            </PrimaryLinkButton>
         </div>
 
         <div v-if="contracts.data.length === 0" class="card mt-6">

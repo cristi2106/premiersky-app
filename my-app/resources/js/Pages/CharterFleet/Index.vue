@@ -2,6 +2,7 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import Modal from '@/Components/Modal.vue';
 import Pagination from '@/Components/Pagination.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SearchInput from '@/Components/SearchInput.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { Head, router, usePoll } from '@inertiajs/vue3';
@@ -155,9 +156,9 @@ const detailFields = computed(() => {
                     class="sm:w-72"
                 />
 
-                <button
+                <PrimaryButton
                     type="button"
-                    class="inline-flex items-center justify-center rounded-lg border border-transparent bg-gray-900 px-4 py-2 text-sm font-medium text-white transition duration-150 ease-in-out hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 active:bg-gray-950 disabled:cursor-not-allowed disabled:opacity-60"
+                    :class="{ 'opacity-25': syncing }"
                     :disabled="syncing"
                     @click="runSync"
                 >
@@ -182,7 +183,7 @@ const detailFields = computed(() => {
                         />
                     </svg>
                     {{ syncing ? 'Sync in progress…' : 'Sync Now' }}
-                </button>
+                </PrimaryButton>
             </div>
         </div>
 
