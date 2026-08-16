@@ -176,6 +176,21 @@ const sortedOffers = computed(() =>
     )
 );
 
+// "Apply to all" for the commission fields below — quote-wide, so it
+// lives here rather than inside any one QuoteOfferCard. Anchored to
+// props.offers[0] (the cheapest offer, i.e. this quote's "Option 1" in
+// both the server's own ordering and the generated PDF) rather than
+// sortedOffers[0], so the checkbox stays put on the same card instead of
+// jumping to a different one if the price-sort toggle above is flipped.
+const applyCommissionToAll = ref(false);
+// The last {type, value} committed by whichever offer was edited while
+// applyCommissionToAll was checked; null until that first happens, so
+// simply checking the box doesn't itself change anything.
+const sharedCommission = ref(null);
+const onCommissionChanged = (payload) => {
+    sharedCommission.value = payload;
+};
+
 // --- Client-facing quotation PDF ---
 
 const clientId = ref(props.quoteRequest?.client?.id ?? null);
@@ -238,7 +253,6 @@ const generatePdf = () => {
                         <tr class="text-left text-xs font-medium uppercase tracking-wide text-gray-500">
                             <th class="py-2 pr-4">Trip ID</th>
                             <th class="py-2 pr-4">Schedule</th>
-                            <th class="py-2 pr-4">First searched</th>
                             <th class="py-2 pr-4">Offers</th>
                             <th class="py-2 pr-4">Status</th>
                             <th class="py-2 pr-4"></th>
@@ -257,7 +271,6 @@ const generatePdf = () => {
                                 </button>
                             </td>
                             <td class="py-2 pr-4 whitespace-nowrap text-gray-600">{{ formatSchedule(item.schedule) }}</td>
-                            <td class="py-2 pr-4 text-gray-600">{{ formatDate(item.first_searched_at) }}</td>
                             <td class="py-2 pr-4 text-gray-600">{{ item.offers_count }}</td>
                             <td class="py-2 pr-4">
                                 <Badge :variant="statusVariant(item.status)">
@@ -472,6 +485,11 @@ const generatePdf = () => {
                         v-for="offer in sortedOffers"
                         :key="offer.id"
                         :offer="offer"
+                        :apply-to-all="applyCommissionToAll"
+                        :shared-commission="sharedCommission"
+                        :show-apply-to-all-checkbox="offer.id === offers[0]?.id"
+                        @update:apply-to-all="applyCommissionToAll = $event"
+                        @commission-changed="onCommissionChanged"
                     />
                 </div>
 

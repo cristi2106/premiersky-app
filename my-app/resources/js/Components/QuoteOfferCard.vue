@@ -9,7 +9,31 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    // "Apply to all" — a quote-wide setting, so it's owned by the parent
+    // (Quotes/Index.vue) rather than local state here, and handed to
+    // every card so any of them can both drive and receive a sync. Only
+    // the card the parent designates (the cheapest offer, i.e. this
+    // quote's "Option 1") actually renders the checkbox.
+    applyToAll: {
+        type: Boolean,
+        default: false,
+    },
+    // The last {type, value} committed by whichever card was edited
+    // while applyToAll was on — null until that first happens. Kept as
+    // a single shared object (rather than each card reaching into
+    // siblings' state) so every card only ever needs to compare against
+    // one source of truth.
+    sharedCommission: {
+        type: Object,
+        default: null,
+    },
+    showApplyToAllCheckbox: {
+        type: Boolean,
+        default: false,
+    },
 });
+
+const emit = defineEmits(['update:applyToAll', 'commission-changed']);
 
 // Local editable copies — the offer prop only reflects the last value the
 // server confirmed, so typing shouldn't wait on a round-trip to show up.
@@ -52,7 +76,44 @@ const scheduleSave = () => {
     saveDebounce = setTimeout(save, 600);
 };
 
-watch([commissionType, commissionValue], scheduleSave);
+// True once this card's own commissionType/commissionValue already equal
+// sharedCommission — i.e. the change we're looking at is one that just
+// arrived *from* the sync (see the sharedCommission watcher below), not
+// one this card originated. Comparing values rather than a "just
+// applied" flag sidesteps Vue's watcher batching entirely: there's no
+// ordering to get right, a value either matches the broadcast or it
+// doesn't.
+const matchesSharedCommission = () =>
+    props.sharedCommission !== null
+    && props.sharedCommission.type === commissionType.value
+    && props.sharedCommission.value === commissionValue.value;
+
+watch([commissionType, commissionValue], () => {
+    scheduleSave();
+
+    // Re-syncing all on every edit (not just the first) is deliberate —
+    // "Apply to all" is a standing rule while it's checked, not a
+    // one-time copy, so whichever option you touch next becomes the new
+    // value for the rest.
+    if (props.applyToAll && !matchesSharedCommission()) {
+        emit('commission-changed', { type: commissionType.value, value: commissionValue.value });
+    }
+});
+
+// Adopts a commission broadcast from whichever option was just edited.
+// Skipped once already in sync (see matchesSharedCommission) so this
+// can't loop back into re-emitting 'commission-changed' above.
+watch(
+    () => props.sharedCommission,
+    (shared) => {
+        if (!props.applyToAll || shared === null || matchesSharedCommission()) {
+            return;
+        }
+
+        commissionType.value = shared.type;
+        commissionValue.value = shared.value;
+    },
+);
 
 const save = async () => {
     // Vue's v-model auto-coerces <input type="number"> to a JS Number once
@@ -200,6 +261,23 @@ watch(selected, toggleSelected);
                         :placeholder="commissionType === 'percentage' ? 'e.g. 5' : 'e.g. 1500'"
                     />
                 </div>
+
+                <!-- Only this quote's cheapest offer (its "Option 1") shows
+                     the toggle — applyToAll itself is quote-wide state
+                     owned by the parent page and handed to every card, so
+                     wherever it's edited from, the sync still applies to
+                     all of them. -->
+                <label
+                    v-if="showApplyToAllCheckbox"
+                    class="flex items-center gap-2 pb-2 text-sm text-gray-600"
+                    title="While checked, editing this option's commission (type or value) copies it to every other option in this quote"
+                >
+                    <Checkbox
+                        :checked="applyToAll"
+                        @update:checked="$emit('update:applyToAll', $event)"
+                    />
+                    Apply to all
+                </label>
 
                 <p class="text-xs text-gray-400" v-if="saving">Saving…</p>
                 <p class="text-xs text-gray-400" v-else-if="savedAt">Saved</p>
