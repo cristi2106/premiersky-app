@@ -2,19 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\RetriesOnReferenceCollision;
 use App\Models\Airport;
 use App\Models\AircraftSpeedReference;
 use App\Models\QuoteOffer;
 use App\Models\QuoteRequest;
 use App\Services\AvinodeQuoteEmailParser;
+use App\Services\SequentialReferenceGenerator;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class QuoteRequestController extends Controller
 {
+    use RetriesOnReferenceCollision;
+
     /**
      * Mirrors resources/js/tailAmenities.js's key/label pairs — kept in
      * sync by hand since one lives in JS (the Tails module's own UI) and
@@ -103,7 +108,11 @@ class QuoteRequestController extends Controller
         abort_if($selectedOffers->isEmpty(), 400, 'Select at least one offer before generating a quotation PDF.');
 
         if ($quoteRequest->quotation_reference === null) {
-            $quoteRequest->update(['quotation_reference' => $this->nextQuotationReference()]);
+            $this->retryOnReferenceCollision(function () use ($quoteRequest) {
+                DB::transaction(function () use ($quoteRequest) {
+                    $quoteRequest->update(['quotation_reference' => $this->nextQuotationReference()]);
+                });
+            });
         }
 
         $itinerary = $this->buildItinerary($selectedOffers->first(), $parser);
@@ -451,16 +460,14 @@ class QuoteRequestController extends Controller
      * two sequences (and the documents they identify) are never
      * ambiguous with one another. Deliberately independent of the Avinode
      * trip ID, which never appears on this document at all.
+     *
+     * See SequentialReferenceGenerator for why this is a max-suffix
+     * lookup rather than a row count, and retryOnReferenceCollision() at
+     * this method's call site for how a same-instant collision with
+     * another request is handled.
      */
     private function nextQuotationReference(): string
     {
-        $prefix = now()->format('m-Y');
-
-        $count = QuoteRequest::query()
-            ->where('quotation_reference', 'like', "{$prefix}/Q%")
-            ->lockForUpdate()
-            ->count();
-
-        return sprintf('%s/Q%02d', $prefix, $count + 1);
+        return SequentialReferenceGenerator::next(QuoteRequest::class, 'quotation_reference', 'Q');
     }
 }
