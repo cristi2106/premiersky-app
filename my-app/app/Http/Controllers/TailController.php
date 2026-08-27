@@ -73,7 +73,7 @@ class TailController extends Controller
 
         Tail::create($data);
 
-        return Redirect::route('tails.index');
+        return Redirect::route('tails.index')->with('success', 'Tail created.');
     }
 
     /**
@@ -99,7 +99,7 @@ class TailController extends Controller
 
         $tail->update($data);
 
-        return Redirect::route('tails.index');
+        return Redirect::route('tails.index')->with('success', 'Tail updated.');
     }
 
     /**
@@ -115,7 +115,7 @@ class TailController extends Controller
 
         $tail->delete();
 
-        return Redirect::route('tails.index');
+        return Redirect::route('tails.index')->with('success', 'Tail deleted.');
     }
 
     /**

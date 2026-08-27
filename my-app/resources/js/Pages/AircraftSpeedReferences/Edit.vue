@@ -148,8 +148,7 @@ const submit = () => {
                     </Link>
 
                     <PrimaryButton
-                        :class="{ 'opacity-25': form.processing }"
-                        :disabled="form.processing"
+                        :loading="form.processing"
                     >
                         Save Changes
                     </PrimaryButton>

@@ -63,13 +63,13 @@ function refreshPage() {
                 v-for="tab in tabs"
                 :key="tab.name"
                 :href="route(tab.route)"
-                class="flex flex-col items-center justify-center gap-1.5 pb-[50px] pt-3.5 transition duration-150 ease-in-out"
+                class="flex h-[100px] flex-col items-center justify-center gap-1 transition duration-150 ease-in-out"
                 :class="route().current(tab.active) ? 'text-accent-600' : 'text-gray-400 hover:text-gray-600'"
             >
-                <svg class="h-8 w-8 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <svg class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" :d="tab.icon" />
                 </svg>
-                <span class="sr-only">{{ tab.name }}</span>
+                <span class="text-xs font-medium leading-none">{{ tab.name }}</span>
             </Link>
         </div>
 
@@ -77,12 +77,12 @@ function refreshPage() {
              divider and tint rather than sitting as a fifth equal tab. -->
         <button
             type="button"
-            class="flex w-16 shrink-0 flex-col items-center justify-center gap-1.5 border-l border-gray-200 bg-gray-50 pb-[50px] pt-3.5 text-gray-400 transition duration-150 ease-in-out hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-60"
+            class="flex h-[100px] w-16 shrink-0 flex-col items-center justify-center gap-1 border-l border-gray-200 bg-gray-50 text-gray-400 transition duration-150 ease-in-out hover:text-gray-600 disabled:cursor-not-allowed disabled:opacity-60"
             :disabled="isRefreshing"
             @click="refreshPage"
         >
             <svg
-                class="h-7 w-7 shrink-0"
+                class="h-6 w-6 shrink-0"
                 :class="{ 'animate-spin': isRefreshing }"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -91,7 +91,7 @@ function refreshPage() {
             >
                 <path stroke-linecap="round" stroke-linejoin="round" :d="refreshIcon" />
             </svg>
-            <span class="sr-only">Refresh</span>
+            <span class="text-xs font-medium leading-none">Refresh</span>
         </button>
     </nav>
 </template>

@@ -117,7 +117,7 @@ watch(
             <button
                 v-if="canRemove"
                 type="button"
-                class="-my-1 cursor-pointer rounded-md px-2 py-1 text-sm font-medium text-red-600 transition duration-150 ease-in-out hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                class="-my-1 cursor-pointer rounded-lg px-2 py-1 text-sm font-medium text-red-600 transition duration-150 ease-in-out hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                 @click="emit('remove')"
             >
                 Remove

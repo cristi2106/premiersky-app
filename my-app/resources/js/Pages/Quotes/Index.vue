@@ -1,6 +1,7 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import Badge from '@/Components/Badge.vue';
+import EmptyState from '@/Components/EmptyState.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import QuoteOfferCard from '@/Components/QuoteOfferCard.vue';
@@ -49,6 +50,15 @@ const props = defineProps({
     history: {
         type: Array,
         default: () => [],
+    },
+    // Set only when QuoteOfferController::generateContract() bailed out
+    // before creating anything (no client selected, or no confident
+    // schedule to build a leg from) and redirected back here instead of
+    // to the new contract's edit page — see that method's own doc
+    // comment.
+    contractError: {
+        type: String,
+        default: null,
     },
 });
 
@@ -176,6 +186,11 @@ const sortedOffers = computed(() =>
     )
 );
 
+// The trip's own schedule, shown once above the offer list — the server
+// already picked the best available itinerary across every offer (see
+// QuoteController::resolveTripSchedule()), so this is just the prop.
+const tripSchedule = computed(() => props.quoteRequest?.schedule ?? null);
+
 // "Apply to all" for the commission fields below — quote-wide, so it
 // lives here rather than inside any one QuoteOfferCard. Anchored to
 // props.offers[0] (the cheapest offer, i.e. this quote's "Option 1" in
@@ -236,6 +251,13 @@ const generatePdf = () => {
     <Head title="Quotes" />
 
     <AdminLayout title="Quotes">
+        <div
+            v-if="contractError"
+            class="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+        >
+            {{ contractError }}
+        </div>
+
         <!-- Search history — every trip ID already searched, so none of
              them have to be remembered or retyped. Clicking a trip ID
              loads whatever's already stored (no mailbox hit); Refresh is
@@ -315,16 +337,9 @@ const generatePdf = () => {
 
         <div class="card mt-6 p-4 sm:p-6">
             <h2 class="text-sm font-medium text-gray-900">Pull emails for a trip</h2>
-            <p class="mt-1 text-sm text-gray-600">
-                Paste an Avinode trip ID below. This searches email subjects
-                first, which is fast, and only falls back to also scanning
-                message bodies if the subject search comes back empty — the
-                mailbox is large and isn't indexed for full-text search, so
-                that fallback can take up to a minute.
-            </p>
 
             <form
-                class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end"
+                class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end"
                 @submit.prevent="pullEmails"
             >
                 <div class="flex-1">
@@ -400,9 +415,10 @@ const generatePdf = () => {
             </p>
 
             <div v-if="pulled && emails.length === 0" class="card mt-4">
-                <div class="p-6 text-center text-sm text-gray-500">
-                    No emails matched "{{ tripId }}" in the subject or body.
-                </div>
+                <EmptyState
+                    title="No matching emails"
+                    :description="`Nothing in the mailbox matched “${tripId}” in the subject or body. Double-check the trip ID, or try again once the operator has replied.`"
+                />
             </div>
 
             <template v-else>
@@ -412,14 +428,8 @@ const generatePdf = () => {
                      the mailbox. -->
                 <div class="card mt-6 p-4 sm:p-6">
                     <h2 class="text-sm font-medium text-gray-900">Client-facing quotation</h2>
-                    <p class="mt-1 text-sm text-gray-600">
-                        Pick the client this quote is for, then generate a PDF
-                        from whichever offers have their checkbox selected
-                        below. Operator names, tail numbers and Avinode
-                        references never appear on it.
-                    </p>
 
-                    <div class="mt-4 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                    <div class="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                         <div class="max-w-sm flex-1">
                             <InputLabel for="quote_client" value="Client" />
                             <SearchableSelect
@@ -452,6 +462,33 @@ const generatePdf = () => {
                     </div>
                 </div>
 
+                <!-- Trip schedule — shown once, above the offers below,
+                     since every one of them is the same trip on a
+                     different aircraft: date/departure/arrival don't vary
+                     by which option gets picked. Local time only, same as
+                     each offer card used to show per-offer — see
+                     AvinodeQuoteEmailParser, which never extracts the raw
+                     email's UTC figures in the first place. -->
+                <div v-if="tripSchedule" class="card mt-6 p-4 sm:p-6">
+                    <h2 class="text-sm font-medium text-gray-900">Schedule</h2>
+                    <div class="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-sm">
+                        <p class="text-gray-900">
+                            <span class="font-medium">{{ tripSchedule.departure_time || '—' }}</span>
+                            {{ tripSchedule.departure_airport || '—' }}
+                        </p>
+                        <p class="text-gray-400">→</p>
+                        <p class="text-gray-900">
+                            <span class="font-medium">{{ tripSchedule.arrival_time || '—' }}</span>
+                            {{ tripSchedule.arrival_airport || '—' }}
+                        </p>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">
+                        {{ tripSchedule.departure_date || '—' }}
+                        <span v-if="tripSchedule.pax"> · {{ tripSchedule.pax }} PAX</span>
+                        <span v-if="!tripSchedule.arrival_time"> · arrival time not quoted yet</span>
+                    </p>
+                </div>
+
                 <!-- Offers — the parsed, structured, bookable result. Only
                      ACCEPTED aircraft lines ever become one of these; a
                      matched email that was all declines is expected to
@@ -475,12 +512,13 @@ const generatePdf = () => {
                 </div>
 
                 <div v-if="offers.length === 0" class="card mt-2">
-                    <div class="p-6 text-center text-sm text-gray-500">
-                        None of the matched emails had an accepted offer yet.
-                    </div>
+                    <EmptyState
+                        title="No offers yet"
+                        description="None of the matched emails had an accepted aircraft line — a declines-only thread still matches the search but has nothing to compare here."
+                    />
                 </div>
 
-                <div v-else class="mt-2 space-y-4">
+                <div v-else class="mt-2 space-y-2">
                     <QuoteOfferCard
                         v-for="offer in sortedOffers"
                         :key="offer.id"
@@ -488,6 +526,7 @@ const generatePdf = () => {
                         :apply-to-all="applyCommissionToAll"
                         :shared-commission="sharedCommission"
                         :show-apply-to-all-checkbox="offer.id === offers[0]?.id"
+                        :has-client="clientId !== null"
                         @update:apply-to-all="applyCommissionToAll = $event"
                         @commission-changed="onCommissionChanged"
                     />

@@ -1,6 +1,7 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import DangerButton from '@/Components/DangerButton.vue';
+import EmptyState from '@/Components/EmptyState.vue';
 import Modal from '@/Components/Modal.vue';
 import Pagination from '@/Components/Pagination.vue';
 import PrimaryLinkButton from '@/Components/PrimaryLinkButton.vue';
@@ -78,15 +79,19 @@ const deleteAirport = () => {
         </div>
 
         <div v-if="airports.data.length === 0" class="card mt-6">
-            <div class="p-6 text-center text-sm text-gray-500">
-                <template v-if="search">
-                    No airports match "{{ search }}".
-                </template>
-                <template v-else>
-                    No airports yet. Get started by adding one, or run
-                    <code class="rounded bg-gray-100 px-1.5 py-0.5 text-xs">php artisan airports:import</code>.
-                </template>
+            <div v-if="search" class="p-6 text-center text-sm text-gray-500">
+                No airports match "{{ search }}".
             </div>
+
+            <EmptyState
+                v-else
+                title="No airports yet"
+                description="Airports are the reference data the Flight Calculator and Contracts both look up by ICAO code — add one, or run php artisan airports:import."
+            >
+                <PrimaryLinkButton :href="route('airports.create')">
+                    New Airport
+                </PrimaryLinkButton>
+            </EmptyState>
         </div>
 
         <template v-else>
@@ -128,7 +133,7 @@ const deleteAirport = () => {
                         <tr
                             v-for="airport in airports.data"
                             :key="airport.id"
-                            class="transition duration-100 ease-in-out hover:bg-gray-50"
+                            class="transition-colors duration-150 ease-in-out hover:bg-gray-50"
                         >
                             <td
                                 class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900"
@@ -159,7 +164,7 @@ const deleteAirport = () => {
                                 </Link>
                                 <button
                                     type="button"
-                                    class="-my-1 ml-4 cursor-pointer rounded-md px-2 py-1 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                                    class="-my-1 ml-4 cursor-pointer rounded-lg px-2 py-1 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                                     @click="confirmDeletion(airport)"
                                 >
                                     Delete
@@ -231,8 +236,7 @@ const deleteAirport = () => {
 
                     <DangerButton
                         class="ms-3"
-                        :class="{ 'opacity-25': form.processing }"
-                        :disabled="form.processing"
+                        :loading="form.processing"
                         @click="deleteAirport"
                     >
                         Delete

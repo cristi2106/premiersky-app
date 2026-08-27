@@ -174,32 +174,41 @@ watch(
             </button>
         </div>
 
-        <div
-            v-show="open"
-            class="absolute z-50 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-md"
+        <Transition
+            enter-active-class="transition ease-out duration-150"
+            enter-from-class="opacity-0 -translate-y-1 scale-95"
+            enter-to-class="opacity-100 translate-y-0 scale-100"
+            leave-active-class="transition ease-in duration-100"
+            leave-from-class="opacity-100 translate-y-0 scale-100"
+            leave-to-class="opacity-0 -translate-y-1 scale-95"
         >
-            <div v-if="loading" class="px-3 py-2 text-sm text-gray-500">
-                Searching…
-            </div>
+            <div
+                v-show="open"
+                class="absolute z-50 mt-1 max-h-64 w-full origin-top overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-md"
+            >
+                <div v-if="loading" class="px-3 py-2 text-sm text-gray-500">
+                    Searching…
+                </div>
 
-            <div v-else-if="results.length === 0" class="px-3 py-2 text-sm text-gray-500">
-                No matches found.
-            </div>
+                <div v-else-if="results.length === 0" class="px-3 py-2 text-sm text-gray-500">
+                    No matches found.
+                </div>
 
-            <ul v-else>
-                <li
-                    v-for="(option, index) in results"
-                    :key="option.id"
-                    class="cursor-pointer px-3 py-2 text-sm"
-                    :class="index === highlightedIndex ? 'bg-accent-50 text-accent-700' : 'text-gray-900 hover:bg-gray-50'"
-                    @mousedown.prevent="select(option)"
-                    @mouseenter="highlightedIndex = index"
-                >
-                    <slot name="option" :option="option">
-                        {{ optionLabel(option) }}
-                    </slot>
-                </li>
-            </ul>
-        </div>
+                <ul v-else>
+                    <li
+                        v-for="(option, index) in results"
+                        :key="option.id"
+                        class="cursor-pointer px-3 py-2 text-sm transition-colors duration-100"
+                        :class="index === highlightedIndex ? 'bg-accent-50 text-accent-700' : 'text-gray-900 hover:bg-gray-50'"
+                        @mousedown.prevent="select(option)"
+                        @mouseenter="highlightedIndex = index"
+                    >
+                        <slot name="option" :option="option">
+                            {{ optionLabel(option) }}
+                        </slot>
+                    </li>
+                </ul>
+            </div>
+        </Transition>
     </div>
 </template>

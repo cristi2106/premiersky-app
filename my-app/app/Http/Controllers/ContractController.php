@@ -87,7 +87,7 @@ class ContractController extends Controller
             });
         });
 
-        return Redirect::route('contracts.index');
+        return Redirect::route('contracts.index')->with('success', 'Contract created.');
     }
 
     /**
@@ -98,6 +98,11 @@ class ContractController extends Controller
         $contract->load(['legs.departureAirport', 'legs.arrivalAirport']);
 
         return Inertia::render('Contracts/Edit', [
+            // Set when QuoteOfferController::generateContract() just
+            // redirected here from the Quotes module — see its own doc
+            // comment for why this landing page, specifically, is the
+            // review step for a best-effort-matched draft.
+            'status' => session('status'),
             'contract' => [
                 'id' => $contract->id,
                 'reference_number' => $contract->reference_number,
@@ -147,7 +152,7 @@ class ContractController extends Controller
             $this->saveLegs($contract, $data['legs']);
         });
 
-        return Redirect::route('contracts.index');
+        return Redirect::route('contracts.index')->with('success', 'Contract updated.');
     }
 
     /**
@@ -157,7 +162,7 @@ class ContractController extends Controller
     {
         $contract->delete();
 
-        return Redirect::route('contracts.index');
+        return Redirect::route('contracts.index')->with('success', 'Contract deleted.');
     }
 
     /**

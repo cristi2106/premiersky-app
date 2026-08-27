@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Models\AircraftSpeedReference;
 use App\Models\Tail;
+use App\Services\AircraftTypeMatcher;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -27,7 +27,7 @@ class ImportTails extends Command
         'type' => ['type', 'aircrafttype', 'model'],
     ];
 
-    public function handle(): int
+    public function handle(AircraftTypeMatcher $aircraftMatcher): int
     {
         $path = $this->argument('path');
 
@@ -78,7 +78,6 @@ class ImportTails extends Command
         $this->showColumnMapping($header, $columns, $delimiter);
 
         $categoryLookup = $this->buildCategoryLookup();
-        $typeLookup = $this->buildTypeLookup();
 
         $currentYear = (int) now()->year;
         $columnCount = count($header);
@@ -95,7 +94,7 @@ class ImportTails extends Command
         $dryRun = (bool) $this->option('dry-run');
 
         DB::transaction(function () use (
-            $handle, $delimiter, $columns, $categoryLookup, $typeLookup, $currentYear, $columnCount,
+            $handle, $delimiter, $columns, $categoryLookup, $aircraftMatcher, $currentYear, $columnCount,
             &$rowNumber, &$imported, &$updated, &$categoryMismatches,
             &$typeContainsMatches, &$typeAmbiguous, &$typeMismatches, &$skipped, $dryRun
         ) {
@@ -165,7 +164,7 @@ class ImportTails extends Command
 
                 if ($columns['type'] !== null) {
                     $typeRaw = trim((string) ($row[$columns['type']] ?? ''));
-                    $resolution = $this->resolveAircraftType($typeRaw, $typeLookup);
+                    $resolution = $aircraftMatcher->match($typeRaw);
                     $aircraftSpeedReferenceId = $resolution['id'];
 
                     switch ($resolution['status']) {
@@ -391,104 +390,6 @@ class ImportTails extends Command
 
         foreach (Tail::CATEGORIES as $category) {
             $lookup[mb_strtoupper($category)] = $category;
-        }
-
-        return $lookup;
-    }
-
-    /**
-     * Resolves a CSV Type value against aircraft_speed_reference in two
-     * passes: an exact (case-insensitive) match first, then — since the
-     * CSV frequently uses a short model name ("Challenger 300") where
-     * aircraft_speed_reference spells out the manufacturer too
-     * ("Bombardier Challenger 300") — a boundary-aware substring match
-     * tried in both directions (see boundaryAwareContains()). A substring
-     * match is only trusted when it's unique; if it's satisfied by more
-     * than one type_name (e.g. a bare "Citation" would match every Cessna
-     * Citation variant), that's ambiguous and left for manual review
-     * rather than guessed.
-     *
-     * @param  array<string, int>  $typeLookup  uppercased type_name => id
-     * @return array{id: int|null, status: 'blank'|'exact'|'contains'|'ambiguous'|'none', matchedName?: string, candidates?: array<int, string>}
-     */
-    private function resolveAircraftType(string $typeRaw, array $typeLookup): array
-    {
-        $typeUpper = mb_strtoupper($typeRaw);
-
-        if ($typeUpper === '') {
-            return ['id' => null, 'status' => 'blank'];
-        }
-
-        if (isset($typeLookup[$typeUpper])) {
-            return ['id' => $typeLookup[$typeUpper], 'status' => 'exact'];
-        }
-
-        $candidates = [];
-
-        foreach ($typeLookup as $refUpper => $id) {
-            if ($this->boundaryAwareContains($refUpper, $typeUpper) || $this->boundaryAwareContains($typeUpper, $refUpper)) {
-                $candidates[$refUpper] = $id;
-            }
-        }
-
-        if (count($candidates) === 1) {
-            return ['id' => array_values($candidates)[0], 'status' => 'contains', 'matchedName' => array_key_first($candidates)];
-        }
-
-        if (count($candidates) > 1) {
-            return ['id' => null, 'status' => 'ambiguous', 'candidates' => array_keys($candidates)];
-        }
-
-        return ['id' => null, 'status' => 'none'];
-    }
-
-    /**
-     * str_contains(), but a match immediately followed by another digit
-     * doesn't count — otherwise "Challenger 350" reads as contained in
-     * "Bombardier Challenger 3500" (it's the first four characters of
-     * "3500"), which is a different aircraft, not a naming variation of
-     * the same one. A match at the very end of the haystack, or followed
-     * by anything that isn't 0-9 ("Airbus ACJ319" inside "Airbus
-     * ACJ319neo", stopping at "n"), still counts. Only the trailing
-     * boundary is checked — a leading digit run-on ("50" inside "350")
-     * isn't this codebase's concern since needle is always a whole model
-     * name/number, never a bare numeric fragment.
-     *
-     * Byte-based (strpos/ctype_digit) rather than mb_-aware: every
-     * type_name and CSV Type value in this data is plain ASCII.
-     */
-    private function boundaryAwareContains(string $haystack, string $needle): bool
-    {
-        if ($needle === '') {
-            return false;
-        }
-
-        $needleLength = strlen($needle);
-        $haystackLength = strlen($haystack);
-        $offset = 0;
-
-        while (($position = strpos($haystack, $needle, $offset)) !== false) {
-            $nextCharPosition = $position + $needleLength;
-
-            if ($nextCharPosition >= $haystackLength || ! ctype_digit($haystack[$nextCharPosition])) {
-                return true;
-            }
-
-            $offset = $position + 1;
-        }
-
-        return false;
-    }
-
-    /**
-     * @return array<string, int> uppercased type_name => aircraft_speed_reference id
-     */
-    private function buildTypeLookup(): array
-    {
-        $lookup = [];
-
-        foreach (AircraftSpeedReference::query()->pluck('id', 'type_name') as $typeName => $id) {
-            $lookup[mb_strtoupper((string) $typeName)] = $id;
         }
 
         return $lookup;

@@ -6,6 +6,7 @@ import BottomNav from '@/Components/BottomNav.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import SidebarNav from '@/Components/SidebarNav.vue';
+import Toast from '@/Components/Toast.vue';
 
 defineProps({
     title: {
@@ -70,7 +71,7 @@ const navigation = [
 </script>
 
 <template>
-    <div class="flex min-h-screen bg-gray-50">
+    <div class="flex h-dvh overflow-hidden bg-gray-50">
         <!-- Mobile sidebar backdrop -->
         <Transition
             enter-active-class="transition-opacity ease-linear duration-200"
@@ -139,9 +140,19 @@ const navigation = [
             </div>
         </Transition>
 
-        <!-- Desktop sidebar -->
+        <!-- Desktop sidebar — a real flex sibling of the main column, not
+             position: fixed. A fixed sidebar over a document that scrolls
+             at the page level can visibly jitter/lag behind the content
+             during scroll on some browsers (fixed-position elements are
+             composited relative to the viewport, but the browser's fast
+             scroll path doesn't always repaint them in the same frame as
+             a long/complex page repaints). Making the sidebar a normal
+             flex item of a viewport-height, non-scrolling root — and
+             letting only <main> below scroll internally — means there's
+             no document-level scroll for it to lag behind in the first
+             place; it simply never moves. -->
         <div
-            class="hidden lg:fixed lg:inset-y-0 lg:z-30 lg:flex lg:w-64 lg:flex-col"
+            class="hidden lg:flex lg:w-64 lg:shrink-0 lg:flex-col"
         >
             <div class="flex grow flex-col overflow-y-auto bg-gray-950">
                 <div class="flex h-16 shrink-0 items-center gap-2 px-6">
@@ -155,11 +166,18 @@ const navigation = [
             </div>
         </div>
 
-        <!-- Main column -->
-        <div class="flex min-w-0 flex-1 flex-col lg:pl-64">
+        <!-- Main column — fills whatever height/width is left next to the
+             sidebar (a real flex sibling now, see above) and never
+             scrolls itself; only <main> below does. The top bar is a
+             plain flex-shrink-0 sibling above it rather than
+             position: sticky, for the same reason the sidebar isn't
+             fixed: nothing above <main> needs "stick while an ancestor
+             scrolls" behavior once nothing here scrolls except <main>
+             itself. -->
+        <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
             <!-- Top bar -->
             <div
-                class="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 sm:px-6 lg:px-8"
+                class="flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 sm:px-6 lg:px-8"
             >
                 <button
                     type="button"
@@ -239,9 +257,11 @@ const navigation = [
                 </Dropdown>
             </div>
 
-            <!-- Page content -->
-            <main class="flex-1">
-                <div class="mx-auto max-w-7xl px-4 pb-44 pt-6 sm:px-6 md:pb-6 lg:px-8">
+            <!-- Page content — the only element in this layout that
+                 actually scrolls; see the root/sidebar/top-bar comments
+                 above for why nothing else needs to. -->
+            <main class="flex-1 overflow-y-auto">
+                <div class="mx-auto max-w-7xl px-4 pb-36 pt-6 sm:px-6 md:pb-6 lg:px-8">
                     <slot />
                 </div>
             </main>
@@ -249,4 +269,6 @@ const navigation = [
 
         <BottomNav />
     </div>
+
+    <Toast />
 </template>

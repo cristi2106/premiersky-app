@@ -7,6 +7,7 @@ use App\Services\AvinodeQuoteEmailParser;
 use App\Services\QuoteEmailSearcher;
 use App\Services\QuoteOfferImporter;
 use App\Services\QuoteOfferPresenter;
+use App\Services\TripScheduleResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -28,7 +29,8 @@ class QuoteController extends Controller
         QuoteEmailSearcher $searcher,
         QuoteOfferImporter $importer,
         QuoteOfferPresenter $presenter,
-        AvinodeQuoteEmailParser $parser
+        AvinodeQuoteEmailParser $parser,
+        TripScheduleResolver $scheduleResolver
     ): Response {
         // Uppercased once, up front, so every use below — searching,
         // resolving/creating the QuoteRequest, and the value sent back to
@@ -85,6 +87,7 @@ class QuoteController extends Controller
                         'id' => $quoteRequest->client->id,
                         'company_name' => $quoteRequest->client->company_name,
                     ] : null,
+                    'schedule' => $scheduleResolver->resolve($offers),
                 ];
             } catch (\Throwable $e) {
                 Log::error('quotes: email pull failed', [
@@ -107,6 +110,12 @@ class QuoteController extends Controller
             'offers' => $offers,
             'quoteRequest' => $quoteRequestData,
             'history' => $this->searchHistory($parser),
+            // Set only when QuoteOfferController::generateContract() bails
+            // out before creating anything (no confident schedule to build
+            // a leg from) and redirects back here — see its own doc
+            // comment for why that specific case can't just land on the
+            // Contract edit page like everything else.
+            'contractError' => session('contractError'),
         ]);
     }
 
@@ -243,4 +252,5 @@ class QuoteController extends Controller
 
         return $fallback;
     }
+
 }

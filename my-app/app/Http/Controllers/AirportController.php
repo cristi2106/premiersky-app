@@ -87,7 +87,7 @@ class AirportController extends Controller
 
         Airport::create($data);
 
-        return Redirect::route('airports.index');
+        return Redirect::route('airports.index')->with('success', 'Airport created.');
     }
 
     /**
@@ -110,7 +110,7 @@ class AirportController extends Controller
 
         $airport->update($data);
 
-        return Redirect::route('airports.index');
+        return Redirect::route('airports.index')->with('success', 'Airport updated.');
     }
 
     /**
@@ -120,7 +120,7 @@ class AirportController extends Controller
     {
         $airport->delete();
 
-        return Redirect::route('airports.index');
+        return Redirect::route('airports.index')->with('success', 'Airport deleted.');
     }
 
     /**

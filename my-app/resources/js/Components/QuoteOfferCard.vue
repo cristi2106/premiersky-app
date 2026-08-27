@@ -1,13 +1,24 @@
 <script setup>
-import Badge from '@/Components/Badge.vue';
 import Checkbox from '@/Components/Checkbox.vue';
 import InputLabel from '@/Components/InputLabel.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
+import { router } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 
 const props = defineProps({
     offer: {
         type: Object,
         required: true,
+    },
+    // Whether the quotation panel above already has a client selected —
+    // Generate Contract needs one (a Contract always belongs to a
+    // client), so the button stays disabled until then rather than
+    // failing after the fact. Owned by the parent (Quotes/Index.vue),
+    // same reasoning as applyToAll below: it's quote-wide state, not
+    // this card's own.
+    hasClient: {
+        type: Boolean,
+        default: false,
     },
     // "Apply to all" — a quote-wide setting, so it's owned by the parent
     // (Quotes/Index.vue) rather than local state here, and handed to
@@ -61,6 +72,31 @@ const liveFinalPrice = computed(() => {
         : props.offer.offered_price + value;
 });
 
+// Year of make, Max PAX and Flight time collapsed into one line (e.g.
+// "2011 · 8 PAX · 03:25") rather than three separate stat columns — the
+// list reads as a compact scan of many offers, not one dialog-box-style
+// card per offer. Distance isn't part of it; it's dropped entirely, and
+// departure/arrival now live only in the shared schedule block above the
+// list (see Quotes/Index.vue), since that's identical for every offer on
+// the same trip.
+const offerStats = computed(() => {
+    const parts = [];
+
+    if (props.offer.year_of_make) {
+        parts.push(props.offer.year_of_make);
+    }
+
+    if (props.offer.max_pax) {
+        parts.push(`${props.offer.max_pax} PAX`);
+    }
+
+    if (props.offer.flight_duration) {
+        parts.push(props.offer.flight_duration);
+    }
+
+    return parts.length > 0 ? parts.join(' · ') : '—';
+});
+
 const formatMoney = (value, currency) => {
     if (value === null || value === undefined) {
         return '—';
@@ -99,6 +135,30 @@ watch([commissionType, commissionValue], () => {
         emit('commission-changed', { type: commissionType.value, value: commissionValue.value });
     }
 });
+
+// Checking the box is itself the "apply now" action — it must broadcast
+// whatever this card (the anchor, since only it renders the checkbox)
+// already holds at that moment, not wait for a further edit. Without
+// this, ticking the box after already typing a commission is a no-op
+// until you touch the field again, which is what let stale commissions
+// on other options survive a checked "Apply to all": nothing ever told
+// them to overwrite. Unconditional — no matchesSharedCommission guard —
+// because the whole point is to overwrite every other option's value
+// with this one regardless of what they currently hold, including a
+// different commission set on a previous visit. Gated to the anchor
+// card only: every card receives the same applyToAll prop, so without
+// showApplyToAllCheckbox here all of them would fire at once and the
+// broadcast would race.
+watch(
+    () => props.applyToAll,
+    (isOn) => {
+        if (!isOn || !props.showApplyToAllCheckbox) {
+            return;
+        }
+
+        emit('commission-changed', { type: commissionType.value, value: commissionValue.value });
+    },
+);
 
 // Adopts a commission broadcast from whichever option was just edited.
 // Skipped once already in sync (see matchesSharedCommission) so this
@@ -161,80 +221,57 @@ const toggleSelected = async () => {
 // hoisted) so the checkbox saves immediately on every toggle — no
 // debounce, since a click is already a single deliberate action.
 watch(selected, toggleSelected);
+
+// A full page navigation (not axios) — the server always redirects
+// somewhere: this offer's own Contract edit page on success, or back
+// here with a flash error if it couldn't build one (see
+// QuoteOfferController::generateContract()). Guarded by hasClient
+// itself (the button is also just disabled) since a plain page
+// navigation has no in-flight state to gate a second click on the way
+// axios calls elsewhere in this file do.
+const generatingContract = ref(false);
+
+const generateContract = () => {
+    if (!props.hasClient || generatingContract.value) {
+        return;
+    }
+
+    generatingContract.value = true;
+
+    router.post(route('quote-offers.generate-contract', props.offer.id), {}, {
+        onFinish: () => {
+            generatingContract.value = false;
+        },
+    });
+};
 </script>
 
 <template>
-    <div class="card p-4 sm:p-6" :class="{ 'ring-2 ring-accent-500': selected }">
-        <div class="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
-            <div class="flex items-start gap-3">
-                <label class="flex items-center gap-2 pt-0.5" title="Include this offer when generating the client PDF">
-                    <Checkbox v-model:checked="selected" />
-                    <span class="sr-only">Include in client PDF</span>
-                </label>
+    <div class="card p-3 sm:p-4" :class="{ 'ring-2 ring-accent-500': selected }">
+        <div class="flex items-start gap-3">
+            <label class="flex items-center gap-2 pt-0.5" title="Include this offer when generating the client PDF">
+                <Checkbox v-model:checked="selected" />
+                <span class="sr-only">Include in client PDF</span>
+            </label>
 
-                <div>
-                    <p class="text-sm font-medium text-gray-900">
-                        {{ offer.operator_name }}
-                    </p>
-                    <p class="mt-0.5 text-sm text-gray-600">
-                        {{ offer.aircraft_type }}
-                        <span v-if="offer.aircraft_registration">— {{ offer.aircraft_registration }}</span>
-                        <span v-else class="text-gray-400">— floating fleet, no tail assigned</span>
-                    </p>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-2">
-                <Badge v-if="offer.tail" variant="success">✓ in fleet</Badge>
-                <p class="text-sm font-semibold text-gray-900">
+            <div>
+                <p class="text-sm font-medium text-gray-900">
+                    {{ offer.operator_name }}
+                </p>
+                <p class="mt-0.5 text-sm text-gray-600">
+                    {{ offer.aircraft_type }}
+                    <span v-if="offer.aircraft_registration">— {{ offer.aircraft_registration }}</span>
+                    <span v-else class="text-gray-400">— floating fleet, no tail assigned</span>
+                </p>
+                <p class="mt-0.5 text-sm text-gray-500">{{ offerStats }}</p>
+                <p class="mt-1 text-sm font-semibold text-gray-900">
                     {{ formatMoney(offer.offered_price, offer.offered_currency) }}
                 </p>
             </div>
         </div>
 
-        <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-600 sm:grid-cols-4">
-            <div>
-                <dt class="text-gray-500">Year of make</dt>
-                <dd class="text-gray-900">{{ offer.year_of_make || '—' }}</dd>
-            </div>
-            <div>
-                <dt class="text-gray-500">Max PAX</dt>
-                <dd class="text-gray-900">{{ offer.max_pax ?? '—' }}</dd>
-            </div>
-            <div>
-                <dt class="text-gray-500">Distance</dt>
-                <dd class="text-gray-900">{{ offer.distance_nm ? `${offer.distance_nm} NM` : '—' }}</dd>
-            </div>
-            <div>
-                <dt class="text-gray-500">Flight time</dt>
-                <dd class="text-gray-900">{{ offer.flight_duration || '—' }}</dd>
-            </div>
-        </dl>
-
-        <!-- Schedule — local time only, deliberately: the raw email also
-             carries a UTC figure next to each of these, which never gets
-             extracted in the first place (see AvinodeQuoteEmailParser). -->
-        <div v-if="offer.itinerary" class="mt-4 rounded-lg bg-gray-50 p-3 text-sm">
-            <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-                <p class="text-gray-900">
-                    <span class="font-medium">{{ offer.itinerary.departure_time || '—' }}</span>
-                    {{ offer.itinerary.departure_airport || '—' }}
-                </p>
-                <p class="text-gray-400">→</p>
-                <p class="text-gray-900">
-                    <span class="font-medium">{{ offer.itinerary.arrival_time || '—' }}</span>
-                    {{ offer.itinerary.arrival_airport || '—' }}
-                </p>
-            </div>
-            <p class="mt-1 text-xs text-gray-500">
-                {{ offer.itinerary.departure_date || '—' }}
-                <span v-if="offer.itinerary.pax"> · {{ offer.itinerary.pax }} PAX</span>
-                <span v-if="!offer.itinerary.arrival_time"> · arrival time not quoted for this offer</span>
-            </p>
-        </div>
-
         <!-- Commission -->
-        <div class="mt-4 flex flex-col gap-3 border-t border-gray-100 pt-4 sm:flex-row sm:items-end sm:justify-between">
+        <div class="mt-3 flex flex-col gap-3 border-t border-gray-100 pt-3 sm:flex-row sm:items-end sm:justify-between">
             <div class="flex flex-wrap items-end gap-3">
                 <div>
                     <InputLabel value="Commission" />
@@ -278,6 +315,23 @@ watch(selected, toggleSelected);
                     />
                     Apply to all
                 </label>
+
+                <!-- Available on every offer regardless of its checkbox
+                     above — which offer becomes the client PDF and which
+                     becomes the contract are independent choices, so this
+                     doesn't read `selected` at all. Only needs a client
+                     chosen (a Contract always belongs to one); nothing
+                     else here gates it, since aircraft/airport matching
+                     is best-effort by design — see
+                     QuoteOfferController::generateContract(). -->
+                <SecondaryButton
+                    type="button"
+                    :disabled="!hasClient || generatingContract"
+                    :title="hasClient ? undefined : 'Select a client first'"
+                    @click="generateContract"
+                >
+                    {{ generatingContract ? 'Generating…' : 'Generate Contract' }}
+                </SecondaryButton>
 
                 <p class="text-xs text-gray-400" v-if="saving">Saving…</p>
                 <p class="text-xs text-gray-400" v-else-if="savedAt">Saved</p>

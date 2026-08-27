@@ -47,6 +47,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('quotes', [QuoteController::class, 'index'])->name('quotes.index');
     Route::patch('quote-offers/{quoteOffer}', [QuoteOfferController::class, 'update'])->name('quote-offers.update');
+    Route::post('quote-offers/{quoteOffer}/generate-contract', [QuoteOfferController::class, 'generateContract'])->name('quote-offers.generate-contract');
     Route::patch('quote-requests/{quoteRequest}', [QuoteRequestController::class, 'update'])->name('quote-requests.update');
     Route::get('quote-requests/{quoteRequest}/pdf', [QuoteRequestController::class, 'pdf'])->name('quote-requests.pdf');
 });
