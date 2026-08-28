@@ -269,7 +269,8 @@ const generatePdf = () => {
                 or refresh it to pull the mailbox again.
             </p>
 
-            <div class="mt-4 overflow-x-auto">
+            <!-- Desktop table -->
+            <div class="mt-4 hidden overflow-x-auto md:block">
                 <table class="min-w-full divide-y divide-gray-200 text-sm">
                     <thead>
                         <tr class="text-left text-xs font-medium uppercase tracking-wide text-gray-500">
@@ -332,6 +333,63 @@ const generatePdf = () => {
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Mobile stacked cards — same data as the table above, one
+                 card per trip; matches the responsive table fallback used
+                 on Clients / Airports / Tails. -->
+            <div class="mt-4 space-y-3 md:hidden">
+                <div
+                    v-for="item in history"
+                    :key="item.id"
+                    class="rounded-lg border border-gray-200 p-4"
+                >
+                    <button
+                        type="button"
+                        class="text-sm font-medium text-accent-700 hover:underline disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline"
+                        :disabled="historyBusyId !== null"
+                        @click="viewHistoryItem(item)"
+                    >
+                        {{ item.avinode_trip_id }}
+                    </button>
+
+                    <p class="mt-0.5 text-xs text-gray-500">
+                        {{ formatSchedule(item.schedule) }}
+                    </p>
+
+                    <div class="mt-2 flex items-center gap-3 text-sm text-gray-600">
+                        <span>
+                            {{ item.offers_count }}
+                            {{ item.offers_count === 1 ? 'offer' : 'offers' }}
+                        </span>
+                        <Badge :variant="statusVariant(item.status)">
+                            {{ STATUS_LABELS[item.status] ?? item.status }}
+                        </Badge>
+
+                        <button
+                            type="button"
+                            class="ml-auto inline-flex shrink-0 items-center justify-center rounded-lg border border-gray-300 p-2 text-gray-700 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
+                            :disabled="historyBusyId !== null"
+                            :aria-label="`Refresh ${item.avinode_trip_id}`"
+                            @click="refreshHistoryItem(item)"
+                        >
+                            <svg
+                                class="h-4 w-4"
+                                :class="{ 'animate-spin': historyBusyId === item.id }"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
