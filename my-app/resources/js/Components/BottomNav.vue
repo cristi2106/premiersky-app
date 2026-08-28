@@ -53,57 +53,47 @@ function refreshPage() {
     });
 }
 
-// --- Hide the bar while a field is focused (soft keyboard likely open) ---
-// On mobile Safari the on-screen keyboard shrinks the *visual* viewport
-// but not the *layout* viewport, so a `position: fixed; bottom: …` bar
-// detaches from the shrunken viewport and, mid-scroll, pops back into view
-// over the content (and sometimes over the keyboard itself). Rather than
-// fight the viewport maths, take the bar out entirely whenever the thing
-// that summons the keyboard — an <input>/<textarea>/<select> — holds
-// focus, and fade it back once focus leaves. focusin/focusout are the
-// bubbling counterparts of focus/blur, so one pair of document listeners
-// covers every field on every page with no per-field wiring. Opacity-only
-// transition + v-if means that once the keyboard closes the bar is byte
-// -for-byte what it was before — no leftover transform/pointer-events to
-// affect scrolling.
+// --- Hide the bar only while the on-screen keyboard is actually open ---
+// A `position: fixed; bottom: …` bar detaches from the *visual* viewport
+// the iOS keyboard shrinks it to, and pops back over the content
+// mid-scroll (sometimes over the keyboard itself).
+//
+// Detect the keyboard directly rather than inferring it from which field
+// has focus: the Quotes trip-ID input autofocuses on load and never
+// blurs, so any focus-based check can't tell "the user is typing" from
+// "the user is scrolling past a still-focused field". When the keyboard
+// opens, window.visualViewport.height drops well below the layout
+// viewport (window.innerHeight) by the keyboard's own height — far more
+// than the ~60-100px the iOS URL bar ever accounts for, and that gap
+// persists for the whole time the keyboard is up regardless of scrolling.
 const keyboardOpen = ref(false);
 
-// Non-text input types don't raise a keyboard — focusing a checkbox or
-// the file button shouldn't blank the nav.
-const NON_TEXT_INPUT_TYPES = new Set([
-    'checkbox', 'radio', 'button', 'submit', 'reset', 'file', 'range', 'color', 'image',
-]);
+// The soft keyboard is always taller than this on a phone in portrait;
+// the URL-bar / accessory-bar deltas never are.
+const KEYBOARD_MIN_INSET = 150;
 
-function summonsKeyboard(el) {
-    if (!el) return false;
-    if (el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') return true;
-    if (el.tagName === 'INPUT') {
-        return !NON_TEXT_INPUT_TYPES.has((el.type || 'text').toLowerCase());
-    }
-    return false;
-}
-
-let settleTimer = null;
 function syncKeyboardState() {
-    // Defer a tick: during focusout, document.activeElement is briefly
-    // <body> before it lands on the next element, so reading it
-    // immediately would flicker the bar when tabbing field-to-field.
-    clearTimeout(settleTimer);
-    settleTimer = setTimeout(() => {
-        keyboardOpen.value = summonsKeyboard(document.activeElement);
-    }, 0);
+    const vv = window.visualViewport;
+
+    if (!vv) {
+        keyboardOpen.value = false;
+        return;
+    }
+
+    // Pinch-zoom also shrinks visualViewport.height — that isn't a keyboard.
+    const zoomed = vv.scale > 1.05;
+    const hiddenInset = window.innerHeight - vv.height;
+
+    keyboardOpen.value = !zoomed && hiddenInset > KEYBOARD_MIN_INSET;
 }
 
 onMounted(() => {
-    document.addEventListener('focusin', syncKeyboardState);
-    document.addEventListener('focusout', syncKeyboardState);
-    syncKeyboardState(); // a field may be autofocused on load
+    window.visualViewport?.addEventListener('resize', syncKeyboardState);
+    syncKeyboardState();
 });
 
 onBeforeUnmount(() => {
-    clearTimeout(settleTimer);
-    document.removeEventListener('focusin', syncKeyboardState);
-    document.removeEventListener('focusout', syncKeyboardState);
+    window.visualViewport?.removeEventListener('resize', syncKeyboardState);
 });
 </script>
 

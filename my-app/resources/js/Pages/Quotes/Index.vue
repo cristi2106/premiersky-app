@@ -1,13 +1,16 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import Badge from '@/Components/Badge.vue';
+import DangerButton from '@/Components/DangerButton.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import InputLabel from '@/Components/InputLabel.vue';
+import Modal from '@/Components/Modal.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import QuoteOfferCard from '@/Components/QuoteOfferCard.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 const props = defineProps({
@@ -134,6 +137,50 @@ const refreshHistoryItem = (item) => {
         { trip_id: item.avinode_trip_id },
         { onFinish: () => { historyBusyId.value = null; } }
     );
+};
+
+// --- Deleting history ---
+//
+// Both actions hard-delete the QuoteRequest(s) and (via ON DELETE CASCADE
+// on quote_offers.quote_request_id, reinforced server-side) their offers.
+// A Contract already generated from one of those offers is a standalone
+// record with no link back to the quote, so it is never touched — see
+// QuoteRequestController::destroy(). Shared useForm: only one confirm
+// modal is ever open at a time, so one `processing` flag is enough.
+const deleteForm = useForm({});
+// The history row awaiting a per-trip delete confirmation, or null.
+const historyItemPendingDeletion = ref(null);
+// Whether the "clear everything" confirmation is open.
+const clearHistoryConfirmOpen = ref(false);
+
+const confirmHistoryItemDeletion = (item) => {
+    if (historyBusyId.value !== null) {
+        return;
+    }
+    historyItemPendingDeletion.value = item;
+};
+
+const confirmClearHistory = () => {
+    clearHistoryConfirmOpen.value = true;
+};
+
+const closeDeleteModals = () => {
+    historyItemPendingDeletion.value = null;
+    clearHistoryConfirmOpen.value = false;
+};
+
+const deleteHistoryItem = () => {
+    deleteForm.delete(route('quote-requests.destroy', historyItemPendingDeletion.value.id), {
+        preserveScroll: true,
+        onSuccess: closeDeleteModals,
+    });
+};
+
+const clearHistory = () => {
+    deleteForm.delete(route('quote-requests.clear-history'), {
+        preserveScroll: true,
+        onSuccess: closeDeleteModals,
+    });
 };
 
 const STATUS_LABELS = {
@@ -263,11 +310,24 @@ const generatePdf = () => {
              loads whatever's already stored (no mailbox hit); Refresh is
              the explicit way to pull that trip fresh instead. -->
         <div v-if="history.length > 0" class="card p-4 sm:p-6">
-            <h2 class="text-sm font-medium text-gray-900">Search history</h2>
-            <p class="mt-1 text-sm text-gray-600">
-                Trip IDs you've already pulled. Click one to view its offers,
-                or refresh it to pull the mailbox again.
-            </p>
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h2 class="text-sm font-medium text-gray-900">Search history</h2>
+                    <p class="mt-1 text-sm text-gray-600">
+                        Trip IDs you've already pulled. Click one to view its offers,
+                        or refresh it to pull the mailbox again.
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    class="shrink-0 inline-flex items-center rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-red-600 transition duration-150 ease-in-out hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
+                    :disabled="historyBusyId !== null"
+                    @click="confirmClearHistory"
+                >
+                    Clear History
+                </button>
+            </div>
 
             <!-- Desktop table -->
             <div class="mt-4 hidden overflow-x-auto md:block">
@@ -300,35 +360,46 @@ const generatePdf = () => {
                                     {{ STATUS_LABELS[item.status] ?? item.status }}
                                 </Badge>
                             </td>
-                            <td class="py-2 pr-4 text-right">
-                                <button
-                                    type="button"
-                                    class="inline-flex items-center rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
-                                    :disabled="historyBusyId !== null"
-                                    @click="refreshHistoryItem(item)"
-                                >
-                                    <svg
-                                        v-if="historyBusyId === item.id"
-                                        class="-ml-0.5 mr-1.5 h-3.5 w-3.5 animate-spin"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
+                            <td class="py-2 pr-4">
+                                <div class="flex items-center justify-end gap-2">
+                                    <button
+                                        type="button"
+                                        class="inline-flex items-center rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
+                                        :disabled="historyBusyId !== null"
+                                        @click="refreshHistoryItem(item)"
                                     >
-                                        <circle
-                                            class="opacity-25"
-                                            cx="12"
-                                            cy="12"
-                                            r="10"
-                                            stroke="currentColor"
-                                            stroke-width="4"
-                                        />
-                                        <path
-                                            class="opacity-75"
-                                            fill="currentColor"
-                                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                                        />
-                                    </svg>
-                                    Refresh
-                                </button>
+                                        <svg
+                                            v-if="historyBusyId === item.id"
+                                            class="-ml-0.5 mr-1.5 h-3.5 w-3.5 animate-spin"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <circle
+                                                class="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                stroke-width="4"
+                                            />
+                                            <path
+                                                class="opacity-75"
+                                                fill="currentColor"
+                                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                            />
+                                        </svg>
+                                        Refresh
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="inline-flex items-center rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-red-600 transition duration-150 ease-in-out hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
+                                        :disabled="historyBusyId !== null"
+                                        @click="confirmHistoryItemDeletion(item)"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -338,11 +409,11 @@ const generatePdf = () => {
             <!-- Mobile stacked cards — same data as the table above, one
                  card per trip; matches the responsive table fallback used
                  on Clients / Airports / Tails. -->
-            <div class="mt-4 space-y-3 md:hidden">
+            <div class="mt-4 space-y-2 md:hidden">
                 <div
                     v-for="item in history"
                     :key="item.id"
-                    class="rounded-lg border border-gray-200 p-4"
+                    class="rounded-lg border border-gray-200 p-3"
                 >
                     <button
                         type="button"
@@ -357,7 +428,7 @@ const generatePdf = () => {
                         {{ formatSchedule(item.schedule) }}
                     </p>
 
-                    <div class="mt-2 flex items-center gap-3 text-sm text-gray-600">
+                    <div class="mt-1.5 flex items-center gap-3 text-sm text-gray-600">
                         <span>
                             {{ item.offers_count }}
                             {{ item.offers_count === 1 ? 'offer' : 'offers' }}
@@ -366,28 +437,52 @@ const generatePdf = () => {
                             {{ STATUS_LABELS[item.status] ?? item.status }}
                         </Badge>
 
-                        <button
-                            type="button"
-                            class="ml-auto inline-flex shrink-0 items-center justify-center rounded-lg border border-gray-300 p-2 text-gray-700 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
-                            :disabled="historyBusyId !== null"
-                            :aria-label="`Refresh ${item.avinode_trip_id}`"
-                            @click="refreshHistoryItem(item)"
-                        >
-                            <svg
-                                class="h-4 w-4"
-                                :class="{ 'animate-spin': historyBusyId === item.id }"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                stroke-width="2"
+                        <div class="ml-auto flex shrink-0 items-center gap-2">
+                            <button
+                                type="button"
+                                class="inline-flex items-center justify-center rounded-lg border border-gray-300 p-1.5 text-gray-700 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
+                                :disabled="historyBusyId !== null"
+                                :aria-label="`Refresh ${item.avinode_trip_id}`"
+                                @click="refreshHistoryItem(item)"
                             >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                />
-                            </svg>
-                        </button>
+                                <svg
+                                    class="h-4 w-4"
+                                    :class="{ 'animate-spin': historyBusyId === item.id }"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                    />
+                                </svg>
+                            </button>
+
+                            <button
+                                type="button"
+                                class="inline-flex items-center justify-center rounded-lg border border-red-200 p-1.5 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
+                                :disabled="historyBusyId !== null"
+                                :aria-label="`Delete ${item.avinode_trip_id} from history`"
+                                @click="confirmHistoryItemDeletion(item)"
+                            >
+                                <svg
+                                    class="h-4 w-4"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -621,5 +716,67 @@ const generatePdf = () => {
                 </details>
             </template>
         </template>
+
+        <!-- Per-trip delete confirmation -->
+        <Modal :show="historyItemPendingDeletion !== null" @close="closeDeleteModals">
+            <div class="p-6">
+                <h2 class="text-lg font-medium text-gray-900">
+                    Delete this trip from history?
+                </h2>
+
+                <p class="mt-1 text-sm text-gray-600">
+                    <span class="font-medium text-gray-900">{{ historyItemPendingDeletion?.avinode_trip_id }}</span>
+                    and its
+                    {{ historyItemPendingDeletion?.offers_count }}
+                    imported offer{{ historyItemPendingDeletion?.offers_count === 1 ? '' : 's' }}
+                    will be permanently deleted. This won't be recoverable. Any
+                    contract already generated from this quote is kept.
+                </p>
+
+                <div class="mt-6 flex justify-end">
+                    <SecondaryButton @click="closeDeleteModals">
+                        Cancel
+                    </SecondaryButton>
+
+                    <DangerButton
+                        class="ms-3"
+                        :loading="deleteForm.processing"
+                        @click="deleteHistoryItem"
+                    >
+                        Delete
+                    </DangerButton>
+                </div>
+            </div>
+        </Modal>
+
+        <!-- Clear-all confirmation -->
+        <Modal :show="clearHistoryConfirmOpen" @close="closeDeleteModals">
+            <div class="p-6">
+                <h2 class="text-lg font-medium text-gray-900">
+                    Clear all search history?
+                </h2>
+
+                <p class="mt-1 text-sm text-gray-600">
+                    All {{ history.length }} trip{{ history.length === 1 ? '' : 's' }}
+                    and every imported offer will be permanently deleted. This
+                    won't be recoverable. Contracts already generated from these
+                    quotes are kept.
+                </p>
+
+                <div class="mt-6 flex justify-end">
+                    <SecondaryButton @click="closeDeleteModals">
+                        Cancel
+                    </SecondaryButton>
+
+                    <DangerButton
+                        class="ms-3"
+                        :loading="deleteForm.processing"
+                        @click="clearHistory"
+                    >
+                        Clear History
+                    </DangerButton>
+                </div>
+            </div>
+        </Modal>
     </AdminLayout>
 </template>

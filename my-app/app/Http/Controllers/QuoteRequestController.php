@@ -11,9 +11,11 @@ use App\Services\AvinodeQuoteEmailParser;
 use App\Services\SequentialReferenceGenerator;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redirect;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class QuoteRequestController extends Controller
@@ -81,6 +83,57 @@ class QuoteRequestController extends Controller
                 ] : null,
             ],
         ]);
+    }
+
+    /**
+     * Removes one trip from the search history entirely — the
+     * QuoteRequest row(s) and every quote_offers row hanging off them.
+     *
+     * "row(s)", plural: a trip ID can still have more than one
+     * QuoteRequest on file (legacy case-variant duplicates — see
+     * QuoteController::resolveQuoteRequest()). The history list already
+     * collapses those into one entry, so deleting must take the whole
+     * case-insensitive group with it, otherwise the trip would reappear
+     * from a leftover row on the next render.
+     *
+     * quote_offers go with it via the ON DELETE CASCADE on
+     * quote_offers.quote_request_id (see the create_quote_offers
+     * migration); the explicit delete here first makes that independent
+     * of whether SQLite FK enforcement happens to be on for this
+     * connection. Nothing else references quote_offers — in particular no
+     * column in `contracts`/`contract_legs` points back at a quote (a
+     * Contract created by QuoteOfferController::generateContract() copies
+     * the values it needs and keeps none of the linkage), so a contract
+     * generated from this quote is completely untouched by any of this.
+     */
+    public function destroy(QuoteRequest $quoteRequest): RedirectResponse
+    {
+        $tripId = strtoupper($quoteRequest->avinode_trip_id);
+
+        DB::transaction(function () use ($tripId) {
+            $requestIds = QuoteRequest::whereRaw('UPPER(avinode_trip_id) = ?', [$tripId])->pluck('id');
+
+            QuoteOffer::whereIn('quote_request_id', $requestIds)->delete();
+            QuoteRequest::whereKey($requestIds)->delete();
+        });
+
+        return Redirect::route('quotes.index')->with('success', "Removed {$tripId} from search history.");
+    }
+
+    /**
+     * Wipes the whole search history — every QuoteRequest and every
+     * quote_offers row. Same cascade/contract-safety notes as destroy()
+     * above; contracts are a separate table with no reference to any of
+     * this, so they all survive.
+     */
+    public function clearHistory(): RedirectResponse
+    {
+        DB::transaction(function () {
+            QuoteOffer::query()->delete();
+            QuoteRequest::query()->delete();
+        });
+
+        return Redirect::route('quotes.index')->with('success', 'Search history cleared.');
     }
 
     /**

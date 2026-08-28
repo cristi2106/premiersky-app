@@ -48,7 +48,9 @@ Route::middleware('auth')->group(function () {
     Route::get('quotes', [QuoteController::class, 'index'])->name('quotes.index');
     Route::patch('quote-offers/{quoteOffer}', [QuoteOfferController::class, 'update'])->name('quote-offers.update');
     Route::post('quote-offers/{quoteOffer}/generate-contract', [QuoteOfferController::class, 'generateContract'])->name('quote-offers.generate-contract');
+    Route::delete('quotes/history', [QuoteRequestController::class, 'clearHistory'])->name('quote-requests.clear-history');
     Route::patch('quote-requests/{quoteRequest}', [QuoteRequestController::class, 'update'])->name('quote-requests.update');
+    Route::delete('quote-requests/{quoteRequest}', [QuoteRequestController::class, 'destroy'])->name('quote-requests.destroy');
     Route::get('quote-requests/{quoteRequest}/pdf', [QuoteRequestController::class, 'pdf'])->name('quote-requests.pdf');
 });
 

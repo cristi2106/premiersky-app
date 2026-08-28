@@ -2,6 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Client;
+use App\Models\Contract;
+use App\Models\ContractLeg;
+use App\Models\QuoteOffer;
 use App\Models\QuoteRequest;
 use App\Models\User;
 use App\Services\QuoteEmailSearcher;
@@ -304,5 +308,133 @@ class QuoteHistoryTest extends TestCase
             ->where('history.0.status', 'offers_received')
             ->where('history.0.first_searched_at', $older->created_at->toIso8601String())
         );
+    }
+
+    /**
+     * Deleting one trip removes its QuoteRequest and every quote_offers
+     * row hanging off it (ON DELETE CASCADE, reinforced in the
+     * controller), and lands back on the history page.
+     */
+    public function test_deleting_a_trip_removes_it_and_cascade_deletes_its_offers(): void
+    {
+        $quoteRequest = QuoteRequest::create(['avinode_trip_id' => 'DELME1', 'status' => 'offers_received']);
+        $offer = $quoteRequest->offers()->create([
+            'operator_name' => 'Test Air',
+            'aircraft_type' => 'Challenger 604',
+            'offered_price' => 10000,
+            'offered_currency' => 'EUR',
+            'raw_email_body' => '',
+        ]);
+
+        $this->actingAs($this->actingUser())
+            ->delete(route('quote-requests.destroy', $quoteRequest))
+            ->assertRedirect(route('quotes.index'))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseMissing('quote_requests', ['id' => $quoteRequest->id]);
+        $this->assertDatabaseMissing('quote_offers', ['id' => $offer->id]);
+        $this->assertSame(0, QuoteOffer::count());
+    }
+
+    /**
+     * The history list collapses legacy case-variant duplicate rows into
+     * one entry, so deleting that entry has to take every row for the
+     * trip ID with it — otherwise the trip reappears from the leftover.
+     */
+    public function test_deleting_a_trip_also_removes_legacy_case_variant_duplicates(): void
+    {
+        $canonical = QuoteRequest::create(['avinode_trip_id' => 'DUPKILL', 'status' => 'offers_received']);
+        $canonical->offers()->create([
+            'operator_name' => 'Test Air',
+            'aircraft_type' => 'Challenger 604',
+            'offered_price' => 10000,
+            'offered_currency' => 'EUR',
+            'raw_email_body' => '',
+        ]);
+        $duplicate = QuoteRequest::create(['avinode_trip_id' => 'dupkill', 'status' => 'pending']);
+
+        $this->actingAs($this->actingUser())
+            ->delete(route('quote-requests.destroy', $canonical))
+            ->assertRedirect(route('quotes.index'));
+
+        $this->assertDatabaseMissing('quote_requests', ['id' => $canonical->id]);
+        $this->assertDatabaseMissing('quote_requests', ['id' => $duplicate->id]);
+        $this->assertSame(0, QuoteRequest::count());
+    }
+
+    /**
+     * "Clear History" wipes every QuoteRequest and quote_offers row.
+     */
+    public function test_clear_history_removes_every_trip_and_offer(): void
+    {
+        $first = QuoteRequest::create(['avinode_trip_id' => 'WIPE1', 'status' => 'offers_received']);
+        $first->offers()->create([
+            'operator_name' => 'Test Air',
+            'aircraft_type' => 'Challenger 604',
+            'offered_price' => 10000,
+            'offered_currency' => 'EUR',
+            'raw_email_body' => '',
+        ]);
+        QuoteRequest::create(['avinode_trip_id' => 'WIPE2', 'status' => 'pending']);
+
+        $this->actingAs($this->actingUser())
+            ->delete(route('quote-requests.clear-history'))
+            ->assertRedirect(route('quotes.index'))
+            ->assertSessionHas('success');
+
+        $this->assertSame(0, QuoteRequest::count());
+        $this->assertSame(0, QuoteOffer::count());
+    }
+
+    /**
+     * The guarantee: a Contract created by the real "Generate Contract"
+     * flow is a standalone record — nothing in contracts/contract_legs
+     * points back at a quote — so deleting the trip it came from (and
+     * every quote_offers row with it) leaves that Contract and its leg
+     * byte-for-byte unchanged.
+     */
+    public function test_deleting_a_trip_leaves_a_contract_generated_from_it_fully_intact(): void
+    {
+        $this->mockSearcherNeverCalled();
+
+        $client = Client::create(['company_name' => 'Acme Charter']);
+        $quoteRequest = QuoteRequest::create([
+            'avinode_trip_id' => 'KEEPCON',
+            'status' => 'offers_received',
+            'client_id' => $client->id,
+        ]);
+        $offer = $quoteRequest->offers()->create([
+            'operator_name' => 'EGT JET LTD.',
+            'aircraft_type' => 'Challenger 605',
+            'aircraft_registration' => 'LZ-VPI',
+            'offered_price' => 37000,
+            'offered_currency' => 'EUR',
+            'raw_email_body' => file_get_contents(
+                __DIR__.'/../fixtures/avinode-emails/sample-3-egt-existing-tail.txt'
+            ),
+        ]);
+
+        // Real flow — the same endpoint the "Generate Contract" button hits.
+        $this->actingAs($this->actingUser())
+            ->post(route('quote-offers.generate-contract', $offer))
+            ->assertRedirect();
+
+        $contract = Contract::latest('id')->firstOrFail();
+        $leg = $contract->legs()->firstOrFail();
+        $contractBefore = $contract->fresh()->getRawOriginal();
+        $legBefore = $leg->fresh()->getRawOriginal();
+
+        // Delete the trip the contract was generated from.
+        $this->actingAs($this->actingUser())
+            ->delete(route('quote-requests.destroy', $quoteRequest))
+            ->assertRedirect(route('quotes.index'));
+
+        $this->assertDatabaseMissing('quote_requests', ['id' => $quoteRequest->id]);
+        $this->assertDatabaseMissing('quote_offers', ['id' => $offer->id]);
+
+        $this->assertSame(1, Contract::count());
+        $this->assertSame(1, ContractLeg::count());
+        $this->assertEquals($contractBefore, Contract::find($contract->id)?->getRawOriginal());
+        $this->assertEquals($legBefore, ContractLeg::find($leg->id)?->getRawOriginal());
     }
 }
