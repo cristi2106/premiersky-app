@@ -23,6 +23,16 @@ const props = defineProps({
         type: Boolean,
         default: true,
     },
+    // When false, the live-calc panel (distance / flight time / arrival)
+    // is hidden and the calc request is skipped entirely. Used by the
+    // Create Manual Quote dialog, which only collects the leg inputs and
+    // leaves the calculation to the server on store
+    // (QuoteRequestController::saveLegs()). Every other caller leaves this
+    // on to show the running preview as fields are filled.
+    showCalculation: {
+        type: Boolean,
+        default: true,
+    },
     errors: {
         type: Object,
         default: () => ({}),
@@ -99,7 +109,7 @@ watch(
         errorMessage.value = '';
         clearTimeout(debounceTimer);
 
-        if (!readyToCalculate.value) {
+        if (!props.showCalculation || !readyToCalculate.value) {
             return;
         }
 
@@ -204,7 +214,7 @@ watch(
             </div>
         </div>
 
-        <div class="mt-4 rounded-lg bg-gray-50 p-4">
+        <div v-if="showCalculation" class="mt-4 rounded-lg bg-gray-50 p-4">
             <div v-if="errorMessage" class="text-sm text-red-600">
                 {{ errorMessage }}
             </div>

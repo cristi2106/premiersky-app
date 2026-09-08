@@ -1,6 +1,10 @@
 <?php
     $optionCount = count($offers);
+    $legCount = count($itineraryLegs);
     $formatAmount = fn (float $amount, string $currency) => number_format($amount, 2).' '.$currency;
+    $durationLabel = function (int $minutes) {
+        return sprintf('%dh %02dm', intdiv($minutes, 60), $minutes % 60);
+    };
     $logoPath = resource_path('images/logo.png');
     $logoData = is_file($logoPath)
         ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
@@ -16,6 +20,14 @@
              system, so most of this is intentionally identical rather than
              reinvented. Only what's specific to a quotation's own content
              (offer option boxes, photos, amenity/cabin chips) is new. --}}
+        :root {
+            /* Premier Sky brand accent, matched to the logo's wing color —
+               same variable contracts/pdf.blade.php defines, needed here
+               too now that a manually-created quote's multi-leg Itinerary
+               table uses the same .leg-label styling as a Contract's. */
+            --accent-gold: #873F1E;
+        }
+
         @page {
             margin: 90px 45px 90px 45px;
         }
@@ -163,6 +175,12 @@
         }
 
         table.specs th.nowrap-col, table.specs td.nowrap-col {
+            white-space: nowrap;
+        }
+
+        table.specs td.leg-label {
+            font-weight: bold;
+            color: var(--accent-gold);
             white-space: nowrap;
         }
 
@@ -434,23 +452,39 @@
         <table class="specs">
             <thead>
                 <tr>
+                    @if ($legCount > 1)
+                        <th class="nowrap-col">Leg</th>
+                    @endif
                     <th class="nowrap-col">Date</th>
                     <th>From</th>
                     <th>To</th>
                     <th class="nowrap-col">Take-off</th>
                     <th class="nowrap-col">Arrival</th>
+                    @if ($showFlightTime)
+                        <th class="nowrap-col">Flight Time</th>
+                    @endif
                     <th class="nowrap-col">Pax</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td class="nowrap-col">{{ $itinerary['date'] ?? '—' }}</td>
-                    <td>{{ $itinerary['departure'] ?? '—' }}</td>
-                    <td>{{ $itinerary['arrival'] ?? '—' }}</td>
-                    <td class="nowrap-col">{{ $itinerary['departure_time'] ?? '—' }}</td>
-                    <td class="nowrap-col">{{ $itinerary['arrival_time'] ?? '—' }}</td>
-                    <td class="nowrap-col">{{ $itinerary['pax'] ?? '—' }}</td>
-                </tr>
+                @foreach ($itineraryLegs as $index => $leg)
+                    <tr>
+                        @if ($legCount > 1)
+                            <td class="leg-label">{{ $index + 1 }}</td>
+                        @endif
+                        <td class="nowrap-col">{{ $leg['date'] ?? '—' }}</td>
+                        <td>{{ $leg['departure'] ?? '—' }}</td>
+                        <td>{{ $leg['arrival'] ?? '—' }}</td>
+                        <td class="nowrap-col">{{ $leg['departure_time'] ?? '—' }}</td>
+                        <td class="nowrap-col">{{ $leg['arrival_time'] ?? '—' }}</td>
+                        @if ($showFlightTime)
+                            <td class="nowrap-col">
+                                {{ $leg['flight_duration_minutes'] !== null ? $durationLabel($leg['flight_duration_minutes']) : '—' }}
+                            </td>
+                        @endif
+                        <td class="nowrap-col">{{ $leg['pax'] ?? '—' }}</td>
+                    </tr>
+                @endforeach
             </tbody>
         </table>
     </div>

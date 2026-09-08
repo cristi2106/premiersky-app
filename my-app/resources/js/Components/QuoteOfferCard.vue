@@ -48,6 +48,14 @@ const emit = defineEmits(['update:applyToAll', 'commission-changed']);
 
 // Local editable copies — the offer prop only reflects the last value the
 // server confirmed, so typing shouldn't wait on a round-trip to show up.
+// Price and currency are editable here because a manual quote's
+// auto-created reference offer lands unpriced (see
+// QuoteRequestController::store()) — for an email-pulled or "Add Offer"
+// offer they're just already filled in.
+const offeredPrice = ref(
+    props.offer.offered_price !== null ? String(props.offer.offered_price) : ''
+);
+const offeredCurrency = ref(props.offer.offered_currency);
 const commissionType = ref(props.offer.commission_type);
 const commissionValue = ref(
     props.offer.commission_value !== null ? String(props.offer.commission_value) : ''
@@ -57,19 +65,25 @@ const savedAt = ref(null);
 const selected = ref(props.offer.selected);
 const savingSelection = ref(false);
 
+// The currency to label money inputs/outputs with — the local pick if
+// one's been made, otherwise whatever the server last confirmed.
+const displayCurrency = computed(() => offeredCurrency.value || props.offer.offered_currency || '');
+
 // Instant feedback as you type — mirrors QuoteOffer::calculateFinalPrice()
 // exactly, but the persisted number always comes back from the server
-// afterwards, since that's the one that's trusted.
+// afterwards, since that's the one that's trusted. Null while the offer
+// has no price yet (nothing to add a commission onto).
 const liveFinalPrice = computed(() => {
+    const price = props.offer.offered_price;
     const value = parseFloat(commissionValue.value);
 
-    if (!commissionType.value || Number.isNaN(value)) {
+    if (price === null || price === undefined || !commissionType.value || Number.isNaN(value)) {
         return null;
     }
 
     return commissionType.value === 'percentage'
-        ? props.offer.offered_price * (1 + value / 100)
-        : props.offer.offered_price + value;
+        ? price * (1 + value / 100)
+        : price + value;
 });
 
 // Year of make, Max PAX and Flight time collapsed into one line (e.g.
@@ -111,6 +125,19 @@ const scheduleSave = () => {
     clearTimeout(saveDebounce);
     saveDebounce = setTimeout(save, 600);
 };
+
+let priceSaveDebounce = null;
+
+const schedulePriceSave = () => {
+    clearTimeout(priceSaveDebounce);
+    priceSaveDebounce = setTimeout(savePrice, 600);
+};
+
+// Price/currency save on the same debounce as commission, and
+// independently of it — see QuoteOfferController::update(), where each
+// field group uses `sometimes`. Not part of the "Apply to all" sync,
+// which is a commission-only convenience.
+watch([offeredPrice, offeredCurrency], schedulePriceSave);
 
 // True once this card's own commissionType/commissionValue already equal
 // sharedCommission — i.e. the change we're looking at is one that just
@@ -201,6 +228,29 @@ const save = async () => {
     }
 };
 
+const savePrice = async () => {
+    const raw = String(offeredPrice.value ?? '').trim();
+
+    saving.value = true;
+
+    try {
+        const { data } = await window.axios.patch(route('quote-offers.update', props.offer.id), {
+            offered_price: raw === '' ? null : raw,
+            offered_currency: offeredCurrency.value || null,
+        });
+
+        // Adopt the server's authoritative numbers — offered_price comes
+        // back as a number (or null), and final_price is recomputed there
+        // against the stored commission, never trusted from here.
+        props.offer.offered_price = data.offer.offered_price;
+        props.offer.offered_currency = data.offer.offered_currency;
+        props.offer.final_price = data.offer.final_price;
+        savedAt.value = Date.now();
+    } finally {
+        saving.value = false;
+    }
+};
+
 // A checkbox toggle is a single deliberate click, not something to
 // debounce like the commission text inputs — save it immediately.
 const toggleSelected = async () => {
@@ -264,15 +314,43 @@ const generateContract = () => {
                     <span v-else class="text-gray-400">— floating fleet, no tail assigned</span>
                 </p>
                 <p class="mt-0.5 text-sm text-gray-500">{{ offerStats }}</p>
-                <p class="mt-1 text-sm font-semibold text-gray-900">
-                    {{ formatMoney(offer.offered_price, offer.offered_currency) }}
+                <p
+                    class="mt-1 text-sm font-semibold"
+                    :class="offer.offered_price === null ? 'text-gray-400' : 'text-gray-900'"
+                >
+                    {{ offer.offered_price === null ? 'Price not set' : formatMoney(offer.offered_price, offer.offered_currency) }}
                 </p>
             </div>
         </div>
 
-        <!-- Commission -->
+        <!-- Price + commission -->
         <div class="mt-3 flex flex-col gap-3 border-t border-gray-100 pt-3 sm:flex-row sm:items-end sm:justify-between">
             <div class="flex flex-wrap items-end gap-3">
+                <div>
+                    <InputLabel value="Price" />
+                    <input
+                        v-model="offeredPrice"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        class="mt-1 block w-32 rounded-lg border-gray-300 py-2 text-sm text-gray-900 shadow-sm focus:border-accent-500 focus:ring-accent-500"
+                        placeholder="e.g. 25000"
+                    />
+                </div>
+
+                <div>
+                    <InputLabel value="Currency" />
+                    <select
+                        v-model="offeredCurrency"
+                        class="mt-1 rounded-lg border-gray-300 py-2 pl-3 pr-8 text-sm text-gray-900 shadow-sm focus:border-accent-500 focus:ring-accent-500"
+                    >
+                        <option :value="null">—</option>
+                        <option value="EUR">EUR</option>
+                        <option value="RON">RON</option>
+                        <option value="USD">USD</option>
+                    </select>
+                </div>
+
                 <div>
                     <InputLabel value="Commission" />
                     <select
@@ -287,7 +365,9 @@ const generateContract = () => {
 
                 <div v-if="commissionType">
                     <InputLabel
-                        :value="commissionType === 'percentage' ? '%' : `Amount (${offer.offered_currency})`"
+                        :value="commissionType === 'percentage'
+                            ? '%'
+                            : (displayCurrency ? `Amount (${displayCurrency})` : 'Amount')"
                     />
                     <input
                         v-model="commissionValue"
@@ -340,7 +420,7 @@ const generateContract = () => {
             <div v-if="liveFinalPrice !== null" class="text-right">
                 <p class="text-xs text-gray-500">Total price</p>
                 <p class="text-base font-semibold text-gray-900">
-                    {{ formatMoney(liveFinalPrice, offer.offered_currency) }}
+                    {{ formatMoney(liveFinalPrice, displayCurrency) }}
                 </p>
             </div>
         </div>

@@ -11,5 +11,15 @@
       "label": "Vite dev server",
       "onAutoForward": "silent"
     }
+  },
+  "otherPortsAttributes": {
+    "onAutoForward": "ignore"
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "remote.autoForwardPorts": false
+      }
+    }
   }
 }

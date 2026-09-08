@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tail;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -51,6 +52,32 @@ class TailController extends Controller
             'tails' => $tails,
             'filters' => ['search' => $search],
         ]);
+    }
+
+    /**
+     * Same search (tail number or operator, 20-result cap) as index()'s
+     * own listing filter — kept separate rather than reused because this
+     * one returns plain JSON for SearchableSelect (see the Quotes module's
+     * "Add Offer" form) instead of an Inertia page. Mirrors
+     * ClientController::search()/AirportController::search().
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $search = trim((string) $request->query('search', ''));
+
+        $tails = Tail::query()
+            ->with('aircraftSpeedReference:id,type_name')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('tail', 'like', "%{$search}%")
+                        ->orWhere('operator', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('tail')
+            ->limit(20)
+            ->get(['id', 'tail', 'operator', 'year_of_make', 'max_pax', 'aircraft_speed_reference_id']);
+
+        return response()->json($tails);
     }
 
     /**

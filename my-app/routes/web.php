@@ -43,11 +43,16 @@ Route::middleware('auth')->group(function () {
     Route::get('charter-fleet', [CharterFleetController::class, 'index'])->name('charter-fleet.index');
     Route::post('charter-fleet/sync', [CharterFleetController::class, 'sync'])->name('charter-fleet.sync');
 
+    Route::get('tails/search', [TailController::class, 'search'])->name('tails.search');
     Route::resource('tails', TailController::class)->except('show');
 
     Route::get('quotes', [QuoteController::class, 'index'])->name('quotes.index');
+    Route::post('quote-requests/{quoteRequest}/offers', [QuoteOfferController::class, 'store'])->name('quote-requests.offers.store');
     Route::patch('quote-offers/{quoteOffer}', [QuoteOfferController::class, 'update'])->name('quote-offers.update');
     Route::post('quote-offers/{quoteOffer}/generate-contract', [QuoteOfferController::class, 'generateContract'])->name('quote-offers.generate-contract');
+    Route::post('quote-requests', [QuoteRequestController::class, 'store'])->name('quote-requests.store');
+    Route::get('quote-requests/{quoteRequest}/schedule', [QuoteRequestController::class, 'editSchedule'])->name('quote-requests.schedule.edit');
+    Route::put('quote-requests/{quoteRequest}/schedule', [QuoteRequestController::class, 'updateSchedule'])->name('quote-requests.schedule.update');
     Route::delete('quotes/history', [QuoteRequestController::class, 'clearHistory'])->name('quote-requests.clear-history');
     Route::patch('quote-requests/{quoteRequest}', [QuoteRequestController::class, 'update'])->name('quote-requests.update');
     Route::delete('quote-requests/{quoteRequest}', [QuoteRequestController::class, 'destroy'])->name('quote-requests.destroy');

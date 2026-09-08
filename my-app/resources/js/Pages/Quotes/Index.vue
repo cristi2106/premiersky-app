@@ -1,16 +1,18 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import Badge from '@/Components/Badge.vue';
+import AddOfferModal from '@/Components/AddOfferModal.vue';
+import CreateManualQuoteModal from '@/Components/CreateManualQuoteModal.vue';
 import DangerButton from '@/Components/DangerButton.vue';
 import EmptyState from '@/Components/EmptyState.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import Modal from '@/Components/Modal.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import QuoteHistoryList from '@/Components/QuoteHistoryList.vue';
 import QuoteOfferCard from '@/Components/QuoteOfferCard.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 
 const props = defineProps({
@@ -111,16 +113,28 @@ const pullEmails = () => {
 // row's button shows a spinner rather than the whole page looking busy.
 const historyBusyId = ref(null);
 
+// Top 5 inline, same order the server already sends (most recent first);
+// the rest are only ever seen through the "view all" popup below.
+const topHistory = computed(() => props.history.slice(0, 5));
+const historyModalOpen = ref(false);
+
+// By id, not trip_id — works identically for an email-pulled quote and a
+// manually-created one (which has no avinode_trip_id to route by at all —
+// see QuoteRequestController::store()). QuoteController::index() resolves
+// this straight to the exact row this list already picked as canonical
+// for its group, so it's never a different lookup than trip_id+view=1
+// used to be — see that method's own doc comment.
 const viewHistoryItem = (item) => {
     if (historyBusyId.value !== null) {
         return;
     }
 
     historyBusyId.value = item.id;
+    historyModalOpen.value = false;
 
     router.get(
         route('quotes.index'),
-        { trip_id: item.avinode_trip_id, view: 1 },
+        { quote_request_id: item.id },
         { onFinish: () => { historyBusyId.value = null; } }
     );
 };
@@ -179,37 +193,20 @@ const deleteHistoryItem = () => {
 const clearHistory = () => {
     deleteForm.delete(route('quote-requests.clear-history'), {
         preserveScroll: true,
-        onSuccess: closeDeleteModals,
+        onSuccess: () => {
+            closeDeleteModals();
+            // Nothing left for it to show — unlike a single-row delete
+            // (deleteHistoryItem above), which leaves the "view all"
+            // popup open on purpose so the rest of the list stays visible.
+            historyModalOpen.value = false;
+        },
     });
 };
 
-const STATUS_LABELS = {
-    pending: 'Pending',
-    offers_received: 'Offers received',
-};
-
-const statusVariant = (status) => (status === 'offers_received' ? 'success' : 'neutral');
-
-// "04 Aug 2026 18:00 LFMN → LATI 19:35" — date/departure on the left,
-// arrival on the right, each field just dropped if the server didn't have
-// it (a trip with no offers yet sends schedule: null; an offer with no
-// quoted arrival time still shows date + departure, just no "→" side).
-const formatSchedule = (schedule) => {
-    if (!schedule) {
-        return '—';
-    }
-
-    const departure = [schedule.date, schedule.departure_time, schedule.departure_icao]
-        .filter(Boolean)
-        .join(' ');
-    const arrival = [schedule.arrival_icao, schedule.arrival_time].filter(Boolean).join(' ');
-
-    if (!departure && !arrival) {
-        return '—';
-    }
-
-    return arrival ? `${departure} → ${arrival}` : departure;
-};
+// Same fallback QuoteHistoryList uses for its own rows — needed again
+// here for the delete-confirmation copy below, which isn't rendered by
+// that component.
+const historyLabel = (item) => item?.avinode_trip_id ?? item?.reference_label ?? 'Untitled quote';
 
 const formatDate = (value) => {
     if (!value) {
@@ -237,6 +234,12 @@ const sortedOffers = computed(() =>
 // already picked the best available itinerary across every offer (see
 // QuoteController::resolveTripSchedule()), so this is just the prop.
 const tripSchedule = computed(() => props.quoteRequest?.schedule ?? null);
+
+// A quote with no avinode_trip_id was created by hand (see
+// QuoteRequestController::store()) — only that kind has an editable
+// schedule (quote_request_legs); an email-pulled quote's keeps coming
+// from parsed offer data, as it already did.
+const isManualQuote = computed(() => props.quoteRequest !== null && !props.quoteRequest.avinode_trip_id);
 
 // "Apply to all" for the commission fields below — quote-wide, so it
 // lives here rather than inside any one QuoteOfferCard. Anchored to
@@ -292,6 +295,34 @@ const generatePdf = () => {
 
     window.open(route('quote-requests.pdf', props.quoteRequest.id), '_blank');
 };
+
+// --- Manually-added offers ---
+//
+// For an operator that responded by phone or another channel instead of
+// email — see AddOfferModal and QuoteOfferController::store(). Submitting
+// it is a full Inertia redirect back to this same page (not an axios
+// call), so the new offer arrives already merged into props.offers
+// alongside everything else that changes with it (status, history) —
+// nothing to reconcile locally here.
+const addOfferModalOpen = ref(false);
+
+// --- Manually-created quotes ---
+//
+// For a trip that never came through Avinode/email at all — see
+// CreateManualQuoteModal and QuoteRequestController::store(). Submitting
+// it redirects straight to the new quote's own offer page (by
+// quote_request_id, since it has no avinode_trip_id — same reasoning as
+// viewHistoryItem() above), so there's nothing to reconcile locally here
+// either.
+const createQuoteModalOpen = ref(false);
+
+// True whenever there's an actual quote loaded to show the rest of the
+// page for — either a trip_id pull/view (tripId non-empty) or a
+// quote_request_id load (which can leave tripId empty, for a manually-
+// created quote — see QuoteController::index()). Replaces a bare
+// `tripId` check, which used to gate this whole section and would have
+// hidden it entirely for a manual quote.
+const hasActiveQuote = computed(() => props.tripId !== '' || props.quoteRequest !== null);
 </script>
 
 <template>
@@ -305,17 +336,22 @@ const generatePdf = () => {
             {{ contractError }}
         </div>
 
-        <!-- Search history — every trip ID already searched, so none of
-             them have to be remembered or retyped. Clicking a trip ID
-             loads whatever's already stored (no mailbox hit); Refresh is
-             the explicit way to pull that trip fresh instead. -->
+        <!-- Search history — every trip ID already searched, plus every
+             manually-created quote, so none of them have to be remembered
+             or retyped. Clicking a row loads whatever's already stored
+             (no mailbox hit); Refresh is the explicit way to pull an
+             email-pulled trip fresh instead (not offered for a manual
+             quote — see QuoteHistoryList). Only the 5 most recent show
+             inline; "View all" opens the rest (up to the 100
+             QuoteController::searchHistory() sends down) in a popup using
+             the exact same list component, so the two never drift apart. -->
         <div v-if="history.length > 0" class="card p-4 sm:p-6">
             <div class="flex items-start justify-between gap-4">
                 <div>
                     <h2 class="text-sm font-medium text-gray-900">Search history</h2>
                     <p class="mt-1 text-sm text-gray-600">
-                        Trip IDs you've already pulled. Click one to view its offers,
-                        or refresh it to pull the mailbox again.
+                        Trips you've already pulled or created. Click one to view its
+                        offers, or refresh it to pull the mailbox again.
                     </p>
                 </div>
 
@@ -329,212 +365,90 @@ const generatePdf = () => {
                 </button>
             </div>
 
-            <!-- Desktop table -->
-            <div class="mt-4 hidden overflow-x-auto md:block">
-                <table class="min-w-full divide-y divide-gray-200 text-sm">
-                    <thead>
-                        <tr class="text-left text-xs font-medium uppercase tracking-wide text-gray-500">
-                            <th class="py-2 pr-4">Trip ID</th>
-                            <th class="py-2 pr-4">Schedule</th>
-                            <th class="py-2 pr-4">Offers</th>
-                            <th class="py-2 pr-4">Status</th>
-                            <th class="py-2 pr-4"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        <tr v-for="item in history" :key="item.id">
-                            <td class="py-2 pr-4">
-                                <button
-                                    type="button"
-                                    class="font-medium text-accent-700 hover:underline disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline"
-                                    :disabled="historyBusyId !== null"
-                                    @click="viewHistoryItem(item)"
-                                >
-                                    {{ item.avinode_trip_id }}
-                                </button>
-                            </td>
-                            <td class="py-2 pr-4 whitespace-nowrap text-gray-600">{{ formatSchedule(item.schedule) }}</td>
-                            <td class="py-2 pr-4 text-gray-600">{{ item.offers_count }}</td>
-                            <td class="py-2 pr-4">
-                                <Badge :variant="statusVariant(item.status)">
-                                    {{ STATUS_LABELS[item.status] ?? item.status }}
-                                </Badge>
-                            </td>
-                            <td class="py-2 pr-4">
-                                <div class="flex items-center justify-end gap-2">
-                                    <button
-                                        type="button"
-                                        class="inline-flex items-center rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
-                                        :disabled="historyBusyId !== null"
-                                        @click="refreshHistoryItem(item)"
-                                    >
-                                        <svg
-                                            v-if="historyBusyId === item.id"
-                                            class="-ml-0.5 mr-1.5 h-3.5 w-3.5 animate-spin"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <circle
-                                                class="opacity-25"
-                                                cx="12"
-                                                cy="12"
-                                                r="10"
-                                                stroke="currentColor"
-                                                stroke-width="4"
-                                            />
-                                            <path
-                                                class="opacity-75"
-                                                fill="currentColor"
-                                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                                            />
-                                        </svg>
-                                        Refresh
-                                    </button>
+            <QuoteHistoryList
+                class="mt-4"
+                :items="topHistory"
+                :busy-id="historyBusyId"
+                @view="viewHistoryItem"
+                @refresh="refreshHistoryItem"
+                @delete="confirmHistoryItemDeletion"
+            />
 
-                                    <button
-                                        type="button"
-                                        class="inline-flex items-center rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-red-600 transition duration-150 ease-in-out hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
-                                        :disabled="historyBusyId !== null"
-                                        @click="confirmHistoryItemDeletion(item)"
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Mobile stacked cards — same data as the table above, one
-                 card per trip; matches the responsive table fallback used
-                 on Clients / Airports / Tails. -->
-            <div class="mt-4 space-y-2 md:hidden">
-                <div
-                    v-for="item in history"
-                    :key="item.id"
-                    class="rounded-lg border border-gray-200 p-3"
-                >
-                    <button
-                        type="button"
-                        class="text-sm font-medium text-accent-700 hover:underline disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline"
-                        :disabled="historyBusyId !== null"
-                        @click="viewHistoryItem(item)"
-                    >
-                        {{ item.avinode_trip_id }}
-                    </button>
-
-                    <p class="mt-0.5 text-xs text-gray-500">
-                        {{ formatSchedule(item.schedule) }}
-                    </p>
-
-                    <div class="mt-1.5 flex items-center gap-3 text-sm text-gray-600">
-                        <span>
-                            {{ item.offers_count }}
-                            {{ item.offers_count === 1 ? 'offer' : 'offers' }}
-                        </span>
-                        <Badge :variant="statusVariant(item.status)">
-                            {{ STATUS_LABELS[item.status] ?? item.status }}
-                        </Badge>
-
-                        <div class="ml-auto flex shrink-0 items-center gap-2">
-                            <button
-                                type="button"
-                                class="inline-flex items-center justify-center rounded-lg border border-gray-300 p-1.5 text-gray-700 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
-                                :disabled="historyBusyId !== null"
-                                :aria-label="`Refresh ${item.avinode_trip_id}`"
-                                @click="refreshHistoryItem(item)"
-                            >
-                                <svg
-                                    class="h-4 w-4"
-                                    :class="{ 'animate-spin': historyBusyId === item.id }"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                    />
-                                </svg>
-                            </button>
-
-                            <button
-                                type="button"
-                                class="inline-flex items-center justify-center rounded-lg border border-red-200 p-1.5 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
-                                :disabled="historyBusyId !== null"
-                                :aria-label="`Delete ${item.avinode_trip_id} from history`"
-                                @click="confirmHistoryItemDeletion(item)"
-                            >
-                                <svg
-                                    class="h-4 w-4"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <button
+                v-if="history.length > 5"
+                type="button"
+                class="mt-4 text-sm font-medium text-accent-700 hover:underline"
+                @click="historyModalOpen = true"
+            >
+                View all {{ history.length }}
+            </button>
         </div>
 
-        <div class="card mt-6 p-4 sm:p-6">
-            <h2 class="text-sm font-medium text-gray-900">Pull emails for a trip</h2>
+        <div class="mt-6 flex flex-col gap-4 sm:flex-row">
+            <div class="card flex-1 p-4 sm:p-6">
+                <h2 class="text-sm font-medium text-gray-900">Pull emails for a trip</h2>
 
-            <form
-                class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end"
-                @submit.prevent="pullEmails"
-            >
-                <div class="flex-1">
-                    <InputLabel for="trip_id" value="Avinode trip ID" />
-                    <TextInput
-                        id="trip_id"
-                        v-model="tripIdInput"
-                        type="text"
-                        class="mt-1 block w-full"
-                        placeholder="e.g. TRP-123456"
-                        autofocus
-                    />
-                </div>
-
-                <PrimaryButton
-                    type="submit"
-                    :class="{ 'opacity-25': pulling }"
-                    :disabled="pulling || tripIdInput.trim() === ''"
+                <form
+                    class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end"
+                    @submit.prevent="pullEmails"
                 >
-                    <svg
-                        v-if="pulling"
-                        class="-ml-1 mr-2 h-4 w-4 animate-spin"
-                        fill="none"
-                        viewBox="0 0 24 24"
+                    <div class="flex-1">
+                        <InputLabel for="trip_id" value="Avinode trip ID" />
+                        <TextInput
+                            id="trip_id"
+                            v-model="tripIdInput"
+                            type="text"
+                            class="mt-1 block w-full"
+                            placeholder="e.g. TRP-123456"
+                            autofocus
+                        />
+                    </div>
+
+                    <PrimaryButton
+                        type="submit"
+                        :class="{ 'opacity-25': pulling }"
+                        :disabled="pulling || tripIdInput.trim() === ''"
                     >
-                        <circle
-                            class="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            stroke-width="4"
-                        />
-                        <path
-                            class="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                        />
-                    </svg>
-                    {{ pulling ? 'Pulling…' : 'Pull Emails' }}
-                </PrimaryButton>
-            </form>
+                        <svg
+                            v-if="pulling"
+                            class="-ml-1 mr-2 h-4 w-4 animate-spin"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                        >
+                            <circle
+                                class="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                stroke-width="4"
+                            />
+                            <path
+                                class="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                            />
+                        </svg>
+                        {{ pulling ? 'Pulling…' : 'Pull Emails' }}
+                    </PrimaryButton>
+                </form>
+            </div>
+
+            <!-- For a trip that never came through Avinode/email at all —
+                 see CreateManualQuoteModal and QuoteRequestController::store(). -->
+            <div class="card flex flex-col justify-center p-4 sm:w-64 sm:p-6">
+                <h2 class="text-sm font-medium text-gray-900">Not from Avinode?</h2>
+                <p class="mt-1 text-sm text-gray-600">
+                    Build a quote by hand instead.
+                </p>
+                <SecondaryButton
+                    type="button"
+                    class="mt-3 justify-center"
+                    @click="createQuoteModalOpen = true"
+                >
+                    Create Manual Quote
+                </SecondaryButton>
+            </div>
         </div>
 
         <div
@@ -544,7 +458,7 @@ const generatePdf = () => {
             {{ searchError }}
         </div>
 
-        <template v-else-if="tripId">
+        <template v-else-if="hasActiveQuote">
             <template v-if="pulled">
                 <p class="mt-6 text-sm text-gray-600">
                     {{ totalMatches }} email{{ totalMatches === 1 ? '' : 's' }} found for
@@ -560,11 +474,16 @@ const generatePdf = () => {
                     Showing the {{ emails.length }} most recent — narrow the trip ID to see the rest.
                 </p>
             </template>
-            <p v-else class="mt-6 text-sm text-gray-600">
+            <p v-else-if="tripId" class="mt-6 text-sm text-gray-600">
                 Showing previously imported offers for
                 <span class="font-medium text-gray-900">{{ tripId }}</span>
                 from search history — the mailbox wasn't checked again. Use
                 Refresh above to pull the latest.
+            </p>
+            <p v-else class="mt-6 text-sm text-gray-600">
+                Manually created quote<span v-if="quoteRequest?.reference_label">
+                    — <span class="font-medium text-gray-900">{{ quoteRequest.reference_label }}</span></span>.
+                No mailbox involved — use "Add Offer" below to add options as operators respond.
             </p>
 
             <div v-if="pulled && emails.length === 0" class="card mt-4">
@@ -622,23 +541,44 @@ const generatePdf = () => {
                      each offer card used to show per-offer — see
                      AvinodeQuoteEmailParser, which never extracts the raw
                      email's UTC figures in the first place. -->
-                <div v-if="tripSchedule" class="card mt-6 p-4 sm:p-6">
-                    <h2 class="text-sm font-medium text-gray-900">Schedule</h2>
-                    <div class="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-sm">
-                        <p class="text-gray-900">
-                            <span class="font-medium">{{ tripSchedule.departure_time || '—' }}</span>
-                            {{ tripSchedule.departure_airport || '—' }}
-                        </p>
-                        <p class="text-gray-400">→</p>
-                        <p class="text-gray-900">
-                            <span class="font-medium">{{ tripSchedule.arrival_time || '—' }}</span>
-                            {{ tripSchedule.arrival_airport || '—' }}
-                        </p>
+                <div v-if="tripSchedule || isManualQuote" class="card mt-6 p-4 sm:p-6">
+                    <div class="flex items-center justify-between gap-3">
+                        <h2 class="text-sm font-medium text-gray-900">Schedule</h2>
+
+                        <!-- Only a manually-created quote's schedule lives
+                             on quote_request_legs, editable here — an
+                             email-pulled quote's keeps coming from the
+                             parsed offer data instead, as it already did.
+                             See QuoteRequestController::editSchedule(). -->
+                        <Link
+                            v-if="isManualQuote"
+                            :href="route('quote-requests.schedule.edit', quoteRequest.id)"
+                            class="shrink-0 inline-flex items-center rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-1"
+                        >
+                            {{ tripSchedule ? 'Edit Schedule' : 'Set Up Schedule' }}
+                        </Link>
                     </div>
-                    <p class="mt-1 text-xs text-gray-500">
-                        {{ tripSchedule.departure_date || '—' }}
-                        <span v-if="tripSchedule.pax"> · {{ tripSchedule.pax }} PAX</span>
-                        <span v-if="!tripSchedule.arrival_time"> · arrival time not quoted yet</span>
+
+                    <template v-if="tripSchedule">
+                        <div class="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-sm">
+                            <p class="text-gray-900">
+                                <span class="font-medium">{{ tripSchedule.departure_time || '—' }}</span>
+                                {{ tripSchedule.departure_airport || '—' }}
+                            </p>
+                            <p class="text-gray-400">→</p>
+                            <p class="text-gray-900">
+                                <span class="font-medium">{{ tripSchedule.arrival_time || '—' }}</span>
+                                {{ tripSchedule.arrival_airport || '—' }}
+                            </p>
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">
+                            {{ tripSchedule.departure_date || '—' }}
+                            <span v-if="tripSchedule.pax"> · {{ tripSchedule.pax }} PAX</span>
+                            <span v-if="!tripSchedule.arrival_time"> · arrival time not quoted yet</span>
+                        </p>
+                    </template>
+                    <p v-else class="mt-3 text-sm text-gray-500">
+                        No schedule set up yet.
                     </p>
                 </div>
 
@@ -651,16 +591,22 @@ const generatePdf = () => {
                         Offers ({{ offers.length }})
                     </h2>
 
-                    <div v-if="offers.length > 1" class="flex items-center gap-2">
-                        <label for="price_sort" class="text-xs text-gray-500">Sort by price</label>
-                        <select
-                            id="price_sort"
-                            v-model="priceSort"
-                            class="rounded-lg border-gray-300 py-1.5 pl-3 pr-8 text-sm text-gray-900 shadow-sm focus:border-accent-500 focus:ring-accent-500"
-                        >
-                            <option value="asc">Low to high</option>
-                            <option value="desc">High to low</option>
-                        </select>
+                    <div class="flex items-center gap-3">
+                        <div v-if="offers.length > 1" class="flex items-center gap-2">
+                            <label for="price_sort" class="text-xs text-gray-500">Sort by price</label>
+                            <select
+                                id="price_sort"
+                                v-model="priceSort"
+                                class="rounded-lg border-gray-300 py-1.5 pl-3 pr-8 text-sm text-gray-900 shadow-sm focus:border-accent-500 focus:ring-accent-500"
+                            >
+                                <option value="asc">Low to high</option>
+                                <option value="desc">High to low</option>
+                            </select>
+                        </div>
+
+                        <SecondaryButton type="button" @click="addOfferModalOpen = true">
+                            Add Offer
+                        </SecondaryButton>
                     </div>
                 </div>
 
@@ -717,15 +663,57 @@ const generatePdf = () => {
             </template>
         </template>
 
+        <!-- Add Offer -->
+        <AddOfferModal
+            v-if="quoteRequest"
+            :show="addOfferModalOpen"
+            :quote-request-id="quoteRequest.id"
+            @close="addOfferModalOpen = false"
+        />
+
+        <!-- Create Manual Quote -->
+        <CreateManualQuoteModal
+            :show="createQuoteModalOpen"
+            @close="createQuoteModalOpen = false"
+        />
+
+        <!-- Full search history — the same rows the top-5 preview shows,
+             just every one of them (up to the 100
+             QuoteController::searchHistory() sends down). Same
+             QuoteHistoryList, same handlers — a row clicked here goes
+             through the exact same viewHistoryItem() as the inline list. -->
+        <Modal :show="historyModalOpen" max-width="2xl" @close="historyModalOpen = false">
+            <div class="p-6">
+                <h2 class="text-lg font-medium text-gray-900">
+                    Search history ({{ history.length }})
+                </h2>
+
+                <QuoteHistoryList
+                    class="mt-4 max-h-[60vh] overflow-y-auto"
+                    :items="history"
+                    :busy-id="historyBusyId"
+                    @view="viewHistoryItem"
+                    @refresh="refreshHistoryItem"
+                    @delete="confirmHistoryItemDeletion"
+                />
+
+                <div class="mt-6 flex justify-end">
+                    <SecondaryButton @click="historyModalOpen = false">
+                        Close
+                    </SecondaryButton>
+                </div>
+            </div>
+        </Modal>
+
         <!-- Per-trip delete confirmation -->
         <Modal :show="historyItemPendingDeletion !== null" @close="closeDeleteModals">
             <div class="p-6">
                 <h2 class="text-lg font-medium text-gray-900">
-                    Delete this trip from history?
+                    Delete this quote from history?
                 </h2>
 
                 <p class="mt-1 text-sm text-gray-600">
-                    <span class="font-medium text-gray-900">{{ historyItemPendingDeletion?.avinode_trip_id }}</span>
+                    <span class="font-medium text-gray-900">{{ historyLabel(historyItemPendingDeletion) }}</span>
                     and its
                     {{ historyItemPendingDeletion?.offers_count }}
                     imported offer{{ historyItemPendingDeletion?.offers_count === 1 ? '' : 's' }}
