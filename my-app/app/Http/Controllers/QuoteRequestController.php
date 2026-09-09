@@ -420,6 +420,28 @@ class QuoteRequestController extends Controller
 
         abort_if($selectedOffers->isEmpty(), 400, 'Select at least one offer before generating a quotation PDF.');
 
+        // A manual quote's auto-created reference offer (see
+        // QuoteOffer::forTail()) starts with offered_price/offered_currency
+        // both null — meant to be filled in on the offer page afterward —
+        // but nothing stops it from being checked "selected" before that
+        // happens. Catch that here, before quotation_reference is even
+        // assigned or the PDF is attempted: buildOfferForPdf()'s total_price
+        // casts a null offered_price to 0.0 (never null), but offered_currency
+        // passes straight through, and quotes.pdf's $formatAmount closure is
+        // typed (float $amount, string $currency) — a null currency there is
+        // a TypeError, not a validation failure. price-block.blade.php has
+        // its own null guard as a last-resort backstop, but the real fix is
+        // to never let PDF generation start at all.
+        $incompleteOffer = $selectedOffers->first(
+            fn (QuoteOffer $offer) => $offer->offered_price === null || $offer->offered_currency === null
+        );
+
+        abort_if(
+            $incompleteOffer !== null,
+            400,
+            "Offer for {$incompleteOffer?->aircraft_type} is missing a price — please add one before generating the PDF."
+        );
+
         if ($quoteRequest->quotation_reference === null) {
             $this->retryOnReferenceCollision(function () use ($quoteRequest) {
                 DB::transaction(function () use ($quoteRequest) {

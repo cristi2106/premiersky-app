@@ -276,6 +276,21 @@ const onClientSelect = async (option) => {
 // prop's reactivity, no extra event plumbing.
 const hasSelectedOffers = computed(() => props.offers.some((offer) => offer.selected));
 
+// A manual quote's auto-created reference offer (see QuoteOffer::forTail())
+// starts with offered_price/offered_currency both null — meant to be filled
+// in on the offer page afterward — and nothing stops it from being checked
+// "selected" before that happens. QuoteRequestController::pdf() blocks that
+// server-side too (belt and suspenders: this is the one that actually keeps
+// the button from doing anything, since the server-side block only shows up
+// after a whole new tab has already opened), but this is what stops the
+// button from firing on an offer that's certain to fail rather than telling
+// the user only after the fact.
+const incompletePricedOffer = computed(() =>
+    props.offers.find(
+        (offer) => offer.selected && (offer.offered_price === null || offer.offered_currency === null)
+    ) ?? null
+);
+
 const pdfHint = computed(() => {
     if (!clientId.value) {
         return 'Select a client to generate a quotation PDF.';
@@ -283,6 +298,10 @@ const pdfHint = computed(() => {
 
     if (!hasSelectedOffers.value) {
         return 'Select at least one offer to generate a quotation PDF.';
+    }
+
+    if (incompletePricedOffer.value) {
+        return `Offer for ${incompletePricedOffer.value.aircraft_type} is missing a price — please add one before generating the PDF.`;
     }
 
     return null;
