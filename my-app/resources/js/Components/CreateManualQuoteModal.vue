@@ -94,12 +94,28 @@ const close = () => {
 
 const submit = () => {
     form.post(route('quote-requests.store'), {
-        // The redirect after a successful store lands back on
-        // Quotes/Index (just with ?quote_request_id=…), so this same
-        // component instance is reused and `createQuoteModalOpen` in the
-        // parent stays true — the dialog would sit open over the new
-        // quote's offer page. Close it explicitly as part of the success
-        // flow. Cancel/Escape/backdrop still go through close() above.
+        // Inertia's router.post() defaults preserveState to true (unlike
+        // .get(), which is how viewHistoryItem/refreshHistoryItem below
+        // navigate) — without overriding it, the redirect back to
+        // Quotes/Index would reuse this same mounted page instance rather
+        // than remount it. That leaves every ref that only initializes
+        // once from props at setup — clientId chief among them, which is
+        // what the "Client-facing quotation" section's client picker
+        // reads — stuck on the old (pre-creation) props: no client showing
+        // selected despite quote_requests.client_id being saved correctly,
+        // until an actual browser refresh forces a fresh mount. Forcing a
+        // remount here keeps this navigation consistent with every other
+        // "genuinely new quote" transition on this page (see the search
+        // history comment above), so it re-initializes from the freshly
+        // loaded props same as those do.
+        preserveState: false,
+        // That remount destroys this modal instance along with the rest of
+        // the page before onSuccess below ever runs, so createQuoteModalOpen
+        // in the parent is already back to its default (closed) by the time
+        // the new page appears — this close() is a harmless, purely
+        // defensive no-op kept for the (currently unreachable) case where
+        // that stops being true. Cancel/Escape/backdrop still go through
+        // close() above.
         onSuccess: () => emit('close'),
     });
 };
