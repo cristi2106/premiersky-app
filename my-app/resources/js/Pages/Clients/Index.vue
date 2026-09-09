@@ -1,7 +1,9 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import DangerButton from '@/Components/DangerButton.vue';
+import EmptyState from '@/Components/EmptyState.vue';
 import Modal from '@/Components/Modal.vue';
+import PrimaryLinkButton from '@/Components/PrimaryLinkButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import SwipeableListItem from '@/Components/SwipeableListItem.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
@@ -42,18 +44,20 @@ const deleteClient = () => {
                 {{ clients.length }} client{{ clients.length === 1 ? '' : 's' }}
             </p>
 
-            <Link
-                :href="route('clients.create')"
-                class="inline-flex items-center justify-center rounded-lg border border-transparent bg-gray-900 px-4 py-2 text-sm font-medium text-white transition duration-150 ease-in-out hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 active:bg-gray-950"
-            >
+            <PrimaryLinkButton :href="route('clients.create')">
                 New Client
-            </Link>
+            </PrimaryLinkButton>
         </div>
 
         <div v-if="clients.length === 0" class="card mt-6">
-            <div class="p-6 text-center text-sm text-gray-500">
-                No clients yet. Get started by creating one.
-            </div>
+            <EmptyState
+                title="No clients yet"
+                description="Client records hold the billing details a contract or quotation PDF needs — add the first one to get started."
+            >
+                <PrimaryLinkButton :href="route('clients.create')">
+                    New Client
+                </PrimaryLinkButton>
+            </EmptyState>
         </div>
 
         <template v-else>
@@ -101,7 +105,7 @@ const deleteClient = () => {
                         <tr
                             v-for="client in clients"
                             :key="client.id"
-                            class="transition duration-100 ease-in-out hover:bg-gray-50"
+                            class="transition-colors duration-150 ease-in-out hover:bg-gray-50"
                         >
                             <td
                                 class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900"
@@ -137,7 +141,7 @@ const deleteClient = () => {
                                 </Link>
                                 <button
                                     type="button"
-                                    class="-my-1 ml-4 cursor-pointer rounded-md px-2 py-1 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                                    class="-my-1 ml-4 cursor-pointer rounded-lg px-2 py-1 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                                     @click="confirmDeletion(client)"
                                 >
                                     Delete
@@ -211,8 +215,7 @@ const deleteClient = () => {
 
                     <DangerButton
                         class="ms-3"
-                        :class="{ 'opacity-25': form.processing }"
-                        :disabled="form.processing"
+                        :loading="form.processing"
                         @click="deleteClient"
                     >
                         Delete

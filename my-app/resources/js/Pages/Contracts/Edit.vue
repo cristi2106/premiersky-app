@@ -15,6 +15,10 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    status: {
+        type: String,
+        default: null,
+    },
 });
 
 const emptyLeg = () => ({
@@ -87,6 +91,13 @@ const submit = () => {
     <Head :title="`Edit Contract ${contract.reference_number}`" />
 
     <AdminLayout :title="`Edit Contract — ${contract.reference_number}`">
+        <div
+            v-if="status"
+            class="mb-6 max-w-4xl rounded-lg bg-green-50 px-4 py-3 text-sm font-medium text-green-700"
+        >
+            {{ status }}
+        </div>
+
         <form class="max-w-4xl space-y-6" @submit.prevent="submit">
             <div class="card p-6">
                 <h2 class="text-sm font-semibold text-gray-900">Contract Details</h2>
@@ -259,8 +270,7 @@ const submit = () => {
                 </Link>
 
                 <PrimaryButton
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
+                    :loading="form.processing"
                 >
                     Save Contract
                 </PrimaryButton>

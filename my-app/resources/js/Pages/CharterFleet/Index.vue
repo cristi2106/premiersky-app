@@ -1,7 +1,9 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import EmptyState from '@/Components/EmptyState.vue';
 import Modal from '@/Components/Modal.vue';
 import Pagination from '@/Components/Pagination.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SearchInput from '@/Components/SearchInput.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import { Head, router, usePoll } from '@inertiajs/vue3';
@@ -155,47 +157,30 @@ const detailFields = computed(() => {
                     class="sm:w-72"
                 />
 
-                <button
+                <PrimaryButton
                     type="button"
-                    class="inline-flex items-center justify-center rounded-lg border border-transparent bg-gray-900 px-4 py-2 text-sm font-medium text-white transition duration-150 ease-in-out hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 active:bg-gray-950 disabled:cursor-not-allowed disabled:opacity-60"
-                    :disabled="syncing"
+                    :loading="syncing"
                     @click="runSync"
                 >
-                    <svg
-                        v-if="syncing"
-                        class="-ml-1 mr-2 h-4 w-4 animate-spin"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                    >
-                        <circle
-                            class="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            stroke-width="4"
-                        />
-                        <path
-                            class="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                        />
-                    </svg>
                     {{ syncing ? 'Sync in progress…' : 'Sync Now' }}
-                </button>
+                </PrimaryButton>
             </div>
         </div>
 
         <div v-if="aircraft.data.length === 0" class="card mt-6">
-            <div class="p-6 text-center text-sm text-gray-500">
-                <template v-if="search">
-                    No aircraft match "{{ search }}".
-                </template>
-                <template v-else>
-                    No aircraft yet. Click "Sync Now" above, or run
-                    <code class="rounded bg-gray-100 px-1.5 py-0.5 text-xs">php artisan fleet:sync</code>.
-                </template>
+            <div v-if="search" class="p-6 text-center text-sm text-gray-500">
+                No aircraft match "{{ search }}".
             </div>
+
+            <EmptyState
+                v-else
+                title="No fleet aircraft yet"
+                description="This directory is synced from Aviapages rather than entered by hand — run a sync to pull it in."
+            >
+                <PrimaryButton type="button" :loading="syncing" @click="runSync">
+                    {{ syncing ? 'Sync in progress…' : 'Sync Now' }}
+                </PrimaryButton>
+            </EmptyState>
         </div>
 
         <template v-else>
@@ -228,7 +213,7 @@ const detailFields = computed(() => {
                         <tr
                             v-for="item in aircraft.data"
                             :key="item.id"
-                            class="transition duration-100 ease-in-out hover:bg-gray-50"
+                            class="transition-colors duration-150 ease-in-out hover:bg-gray-50"
                         >
                             <td class="whitespace-nowrap px-6 py-4 text-sm font-medium">
                                 <button

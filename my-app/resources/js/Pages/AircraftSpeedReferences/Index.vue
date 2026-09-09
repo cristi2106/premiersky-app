@@ -1,8 +1,10 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import DangerButton from '@/Components/DangerButton.vue';
+import EmptyState from '@/Components/EmptyState.vue';
 import Modal from '@/Components/Modal.vue';
 import Pagination from '@/Components/Pagination.vue';
+import PrimaryLinkButton from '@/Components/PrimaryLinkButton.vue';
 import SearchInput from '@/Components/SearchInput.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import SwipeableListItem from '@/Components/SwipeableListItem.vue';
@@ -70,25 +72,26 @@ const deleteAircraftSpeedReference = () => {
                     class="sm:w-72"
                 />
 
-                <Link
-                    :href="route('aircraft-speed-references.create')"
-                    class="inline-flex items-center justify-center rounded-lg border border-transparent bg-gray-900 px-4 py-2 text-sm font-medium text-white transition duration-150 ease-in-out hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 active:bg-gray-950"
-                >
+                <PrimaryLinkButton :href="route('aircraft-speed-references.create')">
                     New Aircraft Type
-                </Link>
+                </PrimaryLinkButton>
             </div>
         </div>
 
         <div v-if="aircraftSpeedReferences.data.length === 0" class="card mt-6">
-            <div class="p-6 text-center text-sm text-gray-500">
-                <template v-if="search">
-                    No aircraft types match "{{ search }}".
-                </template>
-                <template v-else>
-                    No aircraft types yet. Get started by adding one, or run
-                    <code class="rounded bg-gray-100 px-1.5 py-0.5 text-xs">php artisan aircraft-speeds:import {path}</code>.
-                </template>
+            <div v-if="search" class="p-6 text-center text-sm text-gray-500">
+                No aircraft types match "{{ search }}".
             </div>
+
+            <EmptyState
+                v-else
+                title="No aircraft types yet"
+                description="Aircraft types carry the cruise speed and cabin size the Flight Calculator, Tails and Contracts all rely on — add one, or run php artisan aircraft-speeds:import {path}."
+            >
+                <PrimaryLinkButton :href="route('aircraft-speed-references.create')">
+                    New Aircraft Type
+                </PrimaryLinkButton>
+            </EmptyState>
         </div>
 
         <template v-else>
@@ -112,7 +115,7 @@ const deleteAircraftSpeedReference = () => {
                         <tr
                             v-for="aircraftSpeedReference in aircraftSpeedReferences.data"
                             :key="aircraftSpeedReference.id"
-                            class="transition duration-100 ease-in-out hover:bg-gray-50"
+                            class="transition-colors duration-150 ease-in-out hover:bg-gray-50"
                         >
                             <td
                                 class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900"
@@ -130,7 +133,7 @@ const deleteAircraftSpeedReference = () => {
                                 </Link>
                                 <button
                                     type="button"
-                                    class="-my-1 ml-4 cursor-pointer rounded-md px-2 py-1 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                                    class="-my-1 ml-4 cursor-pointer rounded-lg px-2 py-1 text-red-600 transition duration-150 ease-in-out hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                                     @click="confirmDeletion(aircraftSpeedReference)"
                                 >
                                     Delete
@@ -187,8 +190,7 @@ const deleteAircraftSpeedReference = () => {
 
                     <DangerButton
                         class="ms-3"
-                        :class="{ 'opacity-25': form.processing }"
-                        :disabled="form.processing"
+                        :loading="form.processing"
                         @click="deleteAircraftSpeedReference"
                     >
                         Delete
