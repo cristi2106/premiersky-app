@@ -135,7 +135,7 @@ onBeforeUnmount(() => {
                     <svg class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" :d="tab.icon" />
                     </svg>
-                    <span class="text-xs font-medium leading-none">{{ tab.name }}</span>
+                    <span class="text-xs font-bold leading-none text-black">{{ tab.name }}</span>
                 </Link>
             </div>
 

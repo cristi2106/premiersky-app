@@ -183,8 +183,8 @@ const submit = () => {
             <div class="card p-6">
                 <h2 class="text-sm font-semibold text-gray-900">Price</h2>
 
-                <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div>
+                <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                    <div class="col-span-2 sm:col-span-1">
                         <InputLabel for="price" value="Price" />
                         <TextInput
                             id="price"
@@ -225,7 +225,7 @@ const submit = () => {
                         <InputError class="mt-2" :message="form.errors.vat_percentage" />
                     </div>
 
-                    <div class="flex items-end">
+                    <div class="col-span-2 flex items-end sm:col-span-3">
                         <p class="text-sm text-gray-700">{{ priceBreakdown }}</p>
                     </div>
                 </div>

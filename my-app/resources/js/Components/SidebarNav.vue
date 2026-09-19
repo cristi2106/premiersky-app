@@ -21,12 +21,8 @@ defineEmits(['navigate']);
             :key="item.name"
             :href="route(item.route)"
             @click="$emit('navigate')"
-            class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition duration-150 ease-in-out lg:gap-3.5 lg:px-3.5 lg:py-2.5 lg:text-base"
-            :class="
-                route().current(item.active ?? item.route)
-                    ? 'bg-accent-600 text-white'
-                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
-            "
+            class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-bold text-white transition duration-150 ease-in-out lg:gap-3.5 lg:px-3.5 lg:py-2.5 lg:text-base"
+            :class="route().current(item.active ?? item.route) ? 'bg-accent-600' : 'hover:bg-white/5'"
         >
             <svg
                 class="h-5 w-5 shrink-0 lg:h-6 lg:w-6"
