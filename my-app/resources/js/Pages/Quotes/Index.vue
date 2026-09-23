@@ -113,9 +113,6 @@ const pullEmails = () => {
 // row's button shows a spinner rather than the whole page looking busy.
 const historyBusyId = ref(null);
 
-// Top 5 inline, same order the server already sends (most recent first);
-// the rest are only ever seen through the "view all" popup below.
-const topHistory = computed(() => props.history.slice(0, 5));
 const historyModalOpen = ref(false);
 
 // By id, not trip_id — works identically for an email-pulled quote and a
@@ -357,51 +354,24 @@ const hasActiveQuote = computed(() => props.tripId !== '' || props.quoteRequest 
 
         <!-- Search history — every trip ID already searched, plus every
              manually-created quote, so none of them have to be remembered
-             or retyped. Clicking a row loads whatever's already stored
-             (no mailbox hit); Refresh is the explicit way to pull an
-             email-pulled trip fresh instead (not offered for a manual
-             quote — see QuoteHistoryList). Only the 5 most recent show
-             inline; "View all" opens the rest (up to the 100
-             QuoteController::searchHistory() sends down) in a popup using
-             the exact same list component, so the two never drift apart. -->
-        <div v-if="history.length > 0" class="card p-4 sm:p-6">
-            <div class="flex items-start justify-between gap-4">
-                <div>
-                    <h2 class="text-sm font-medium text-gray-900">Search history</h2>
-                    <p class="mt-1 text-sm text-gray-600">
-                        Trips you've already pulled or created. Click one to view its
-                        offers, or refresh it to pull the mailbox again.
-                    </p>
-                </div>
-
-                <button
-                    type="button"
-                    class="shrink-0 inline-flex items-center rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-red-600 transition duration-150 ease-in-out hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
-                    :disabled="historyBusyId !== null"
-                    @click="confirmClearHistory"
-                >
-                    Clear History
-                </button>
-            </div>
-
-            <QuoteHistoryList
-                class="mt-4"
-                :items="topHistory"
-                :busy-id="historyBusyId"
-                @view="viewHistoryItem"
-                @refresh="refreshHistoryItem"
-                @delete="confirmHistoryItemDeletion"
-            />
-
-            <button
-                v-if="history.length > 5"
-                type="button"
-                class="mt-4 text-sm font-medium text-accent-700 hover:underline"
-                @click="historyModalOpen = true"
-            >
-                View all {{ history.length }}
-            </button>
-        </div>
+             or retyped. The full list (up to the 100
+             QuoteController::searchHistory() sends down), with Refresh,
+             Delete and Clear History, lives entirely in the popup below —
+             this button is just the entry point, with a count badge so
+             the total is visible without opening it. -->
+        <SecondaryButton
+            v-if="history.length > 0"
+            type="button"
+            @click="historyModalOpen = true"
+        >
+            <svg class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Search History
+            <span class="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-gray-100 px-1.5 text-xs font-semibold text-gray-700">
+                {{ history.length }}
+            </span>
+        </SecondaryButton>
 
         <div class="mt-6 flex flex-col gap-4 sm:flex-row">
             <div class="card flex-1 p-4 sm:p-6">
@@ -696,16 +666,28 @@ const hasActiveQuote = computed(() => props.tripId !== '' || props.quoteRequest 
             @close="createQuoteModalOpen = false"
         />
 
-        <!-- Full search history — the same rows the top-5 preview shows,
-             just every one of them (up to the 100
-             QuoteController::searchHistory() sends down). Same
-             QuoteHistoryList, same handlers — a row clicked here goes
-             through the exact same viewHistoryItem() as the inline list. -->
-        <Modal :show="historyModalOpen" max-width="2xl" @close="historyModalOpen = false">
+        <!-- Full search history (up to the 100
+             QuoteController::searchHistory() sends down), opened from the
+             "Search History" button above. Clicking a row loads whatever's
+             already stored (no mailbox hit); Refresh is the explicit way
+             to pull an email-pulled trip fresh instead (not offered for a
+             manual quote — see QuoteHistoryList). -->
+        <Modal :show="historyModalOpen" max-width="4xl" @close="historyModalOpen = false">
             <div class="p-6">
-                <h2 class="text-lg font-medium text-gray-900">
-                    Search history ({{ history.length }})
-                </h2>
+                <div class="flex items-start justify-between gap-4">
+                    <h2 class="text-lg font-medium text-gray-900">
+                        Search history ({{ history.length }})
+                    </h2>
+
+                    <button
+                        type="button"
+                        class="shrink-0 inline-flex items-center rounded-lg border border-red-200 px-2.5 py-1 text-xs font-medium text-red-600 transition duration-150 ease-in-out hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
+                        :disabled="historyBusyId !== null"
+                        @click="confirmClearHistory"
+                    >
+                        Clear History
+                    </button>
+                </div>
 
                 <QuoteHistoryList
                     class="mt-4 max-h-[60vh] overflow-y-auto"

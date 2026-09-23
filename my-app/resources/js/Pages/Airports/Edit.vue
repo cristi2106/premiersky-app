@@ -30,7 +30,7 @@ const submit = () => {
 <template>
     <Head title="Edit Airport" />
 
-    <AdminLayout title="Edit Airport">
+    <AdminLayout title="Edit Airport" :breadcrumb="{ label: 'Database', route: 'database.index' }">
         <div class="card max-w-xl p-6">
             <form class="space-y-6" @submit.prevent="submit">
                 <div>

@@ -5,17 +5,14 @@ import { Head, Link, usePage } from '@inertiajs/vue3';
 const page = usePage();
 
 // Every module the app actually has today (see PRODUCT.md's "Evidence on
-// Hand") — kept in sync by hand with AdminLayout's sidebar list, since
-// this card grid is the same set of destinations in a different shape.
-// Charter Fleet Directory is real and linked here too even though it
-// isn't one of the sidebar's primary items.
+// Hand") — this card grid lists them individually even though the
+// sidebar groups Clients/Airports/Aircraft Types/Tails under "Database".
 const modules = [
     { name: 'Clients', description: 'Company records and billing details.', route: 'clients.index' },
     { name: 'Airports', description: 'Reference data used by the flight calculator and contracts.', route: 'airports.index' },
     { name: 'Aircraft Types', description: 'Cruise speed, cabin size and seating by aircraft type.', route: 'aircraft-speed-references.index' },
     { name: 'Flight Calculator', description: 'Distance, flight time and local arrival for any route.', route: 'flight-calculator.index' },
     { name: 'Tails', description: 'Charter-ready aircraft on file, with photos and amenities.', route: 'tails.index' },
-    { name: 'Charter Fleet Directory', description: 'Operator aircraft available for charter, synced from Aviapages.', route: 'charter-fleet.index' },
     { name: 'Quotes', description: 'Pull operator offers from email and compare them.', route: 'quotes.index' },
     { name: 'Contracts', description: 'Charter contracts, pricing and status.', route: 'contracts.index' },
 ];

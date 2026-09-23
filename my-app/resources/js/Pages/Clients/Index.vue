@@ -38,7 +38,7 @@ const deleteClient = () => {
 <template>
     <Head title="Clients" />
 
-    <AdminLayout title="Clients">
+    <AdminLayout title="Clients" :breadcrumb="{ label: 'Database', route: 'database.index' }">
         <div class="flex items-center justify-between">
             <p class="text-sm text-gray-600">
                 {{ clients.length }} client{{ clients.length === 1 ? '' : 's' }}

@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\AircraftSpeedReferenceController;
 use App\Http\Controllers\AirportController;
-use App\Http\Controllers\CharterFleetController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\FlightCalculatorController;
@@ -25,6 +24,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    Route::get('/database', function () {
+        return Inertia::render('Database/Index');
+    })->name('database.index');
+
     Route::get('clients/search', [ClientController::class, 'search'])->name('clients.search');
     Route::resource('clients', ClientController::class)->except('show');
 
@@ -39,9 +42,6 @@ Route::middleware('auth')->group(function () {
 
     Route::get('contracts/{contract}/pdf', [ContractController::class, 'pdf'])->name('contracts.pdf');
     Route::resource('contracts', ContractController::class)->except('show');
-
-    Route::get('charter-fleet', [CharterFleetController::class, 'index'])->name('charter-fleet.index');
-    Route::post('charter-fleet/sync', [CharterFleetController::class, 'sync'])->name('charter-fleet.sync');
 
     Route::get('tails/search', [TailController::class, 'search'])->name('tails.search');
     Route::resource('tails', TailController::class)->except('show');

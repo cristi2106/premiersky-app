@@ -96,7 +96,7 @@ const cabinFields = computed(() => {
 <template>
     <Head title="Tails" />
 
-    <AdminLayout title="Tails">
+    <AdminLayout title="Tails" :breadcrumb="{ label: 'Database', route: 'database.index' }">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <p class="text-sm text-gray-600">
                 {{ tails.total }} tail{{ tails.total === 1 ? '' : 's' }}

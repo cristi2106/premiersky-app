@@ -59,7 +59,7 @@ const deleteAircraftSpeedReference = () => {
 <template>
     <Head title="Aircraft Types" />
 
-    <AdminLayout title="Aircraft Types">
+    <AdminLayout title="Aircraft Types" :breadcrumb="{ label: 'Database', route: 'database.index' }">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <p class="text-sm text-gray-600">
                 {{ aircraftSpeedReferences.total }} aircraft type{{ aircraftSpeedReferences.total === 1 ? '' : 's' }}

@@ -59,7 +59,7 @@ const deleteAirport = () => {
 <template>
     <Head title="Airports" />
 
-    <AdminLayout title="Airports">
+    <AdminLayout title="Airports" :breadcrumb="{ label: 'Database', route: 'database.index' }">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <p class="text-sm text-gray-600">
                 {{ airports.total }} airport{{ airports.total === 1 ? '' : 's' }}

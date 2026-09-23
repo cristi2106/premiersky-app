@@ -180,37 +180,43 @@ watch(
                 <InputError v-else class="mt-2" :message="errors.arrival_airport_id" />
             </div>
 
-            <div class="col-span-2 sm:col-span-1">
-                <InputLabel :for="`leg-${legNumber}-date`" value="Flight Date" />
-                <TextInput
-                    :id="`leg-${legNumber}-date`"
-                    v-model="flightDate"
-                    type="date"
-                    class="mt-1 block w-full"
-                />
-                <InputError class="mt-2" :message="errors.flight_date" />
-            </div>
+            <!-- Date, ETD and Passengers share one row on every breakpoint —
+                 their own 3-column sub-grid rather than the 2-column grid
+                 the airports above use, so pax never falls onto a
+                 half-empty row of its own on desktop. -->
+            <div class="col-span-2 grid grid-cols-3 gap-3">
+                <div>
+                    <InputLabel :for="`leg-${legNumber}-date`" value="Flight Date" />
+                    <TextInput
+                        :id="`leg-${legNumber}-date`"
+                        v-model="flightDate"
+                        type="date"
+                        class="mt-1 block w-full"
+                    />
+                    <InputError class="mt-2" :message="errors.flight_date" />
+                </div>
 
-            <div class="col-span-1">
-                <InputLabel :for="`leg-${legNumber}-time`" value="ETD (local)" />
-                <TimeInput
-                    :id="`leg-${legNumber}-time`"
-                    v-model="departureTime"
-                    class="mt-1 block w-full"
-                />
-                <InputError class="mt-2" :message="errors.departure_time" />
-            </div>
+                <div>
+                    <InputLabel :for="`leg-${legNumber}-time`" value="ETD (local)" />
+                    <TimeInput
+                        :id="`leg-${legNumber}-time`"
+                        v-model="departureTime"
+                        class="mt-1 block w-full"
+                    />
+                    <InputError class="mt-2" :message="errors.departure_time" />
+                </div>
 
-            <div class="col-span-1">
-                <InputLabel :for="`leg-${legNumber}-pax`" value="Passengers" />
-                <TextInput
-                    :id="`leg-${legNumber}-pax`"
-                    v-model="pax"
-                    type="number"
-                    min="1"
-                    class="mt-1 block w-full"
-                />
-                <InputError class="mt-2" :message="errors.pax" />
+                <div>
+                    <InputLabel :for="`leg-${legNumber}-pax`" value="Passengers" />
+                    <TextInput
+                        :id="`leg-${legNumber}-pax`"
+                        v-model="pax"
+                        type="number"
+                        min="1"
+                        class="mt-1 block w-full"
+                    />
+                    <InputError class="mt-2" :message="errors.pax" />
+                </div>
             </div>
         </div>
 
