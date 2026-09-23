@@ -11,7 +11,7 @@
     $priceBreakdownHtml = $vatPercentage > 0
         ? e($formatAmount((float) $contract->price) . ' ' . $contract->currency . ' + VAT ' . rtrim(rtrim(number_format($vatPercentage, 2), '0'), '.') . '% = ') . '<span class="price-total-hero">' . e($totalLabel) . '</span>'
         : e($formatAmount((float) $contract->price) . ' ' . $contract->currency);
-    $logoPath = resource_path('images/LOGO2023.png');
+    $logoPath = resource_path('images/logo.png');
     $logoData = is_file($logoPath)
         ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
         : null;
@@ -47,6 +47,13 @@
     <meta charset="utf-8">
     <title>Charter Agreement {{ $contract->reference_number }}</title>
     <style>
+        :root {
+            /* Premier Sky brand accent, matched to the logo's wing color.
+               Referenced via var() below instead of hardcoded so future
+               color changes only need this one edit. */
+            --accent-gold: #873F1E;
+        }
+
         @page {
             margin: 90px 45px 90px 45px;
         }
@@ -121,8 +128,11 @@
         }
 
         .header-row .logo-cell img {
+            /* Only width is set here — logo.png is cropped tight to its
+               artwork (891x195), so height is left unset and scales
+               proportionally from that intrinsic ratio. A fixed height
+               alongside a fixed width previously stretched the logo. */
             width: 185px;
-            height: 74px;
             margin-bottom: 70px;
         }
 
@@ -200,7 +210,7 @@
 
         table.specs td.leg-label {
             font-weight: bold;
-            color: #9c7a2a;
+            color: var(--accent-gold);
             white-space: nowrap;
         }
 
@@ -349,8 +359,9 @@
         }
 
         .terms-header-row .terms-logo-cell img {
+            /* See .header-row .logo-cell img's comment — same reasoning,
+               height left unset so it scales proportionally. */
             width: 70px;
-            height: 28px;
         }
 
         .terms-header-row .terms-ref-cell {
@@ -409,9 +420,7 @@
         <table class="terms-header-row">
             <tr>
                 <td class="terms-logo-cell">
-                    @if ($logoData)
-                        <img src="{{ $logoData }}" alt="Company logo">
-                    @endif
+                    @include('pdf.partials.logo')
                 </td>
                 <td class="terms-ref-cell">
                     Contract Ref: {{ $contract->reference_number }}
@@ -423,9 +432,7 @@
     <table class="header-row">
         <tr>
             <td class="logo-cell">
-                @if ($logoData)
-                    <div><img src="{{ $logoData }}" alt="Company logo"></div>
-                @endif
+                <div>@include('pdf.partials.logo')</div>
                 <h1 class="agreement-title">CHARTER AGREEMENT</h1>
             </td>
             <td class="meta-cell">

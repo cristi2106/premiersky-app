@@ -23,7 +23,7 @@ const submit = () => {
 <template>
     <Head title="New Airport" />
 
-    <AdminLayout title="New Airport">
+    <AdminLayout title="New Airport" :breadcrumb="{ label: 'Database', route: 'database.index' }">
         <div class="card max-w-xl p-6">
             <form class="space-y-6" @submit.prevent="submit">
                 <div>
@@ -123,8 +123,7 @@ const submit = () => {
                     </Link>
 
                     <PrimaryButton
-                        :class="{ 'opacity-25': form.processing }"
-                        :disabled="form.processing"
+                        :loading="form.processing"
                     >
                         Save Airport
                     </PrimaryButton>

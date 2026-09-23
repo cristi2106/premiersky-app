@@ -28,13 +28,19 @@ class QuoteOfferPresenter
             (float) $offer->offered_price
         );
 
+        // Null (not 0.0) when a manually-created quote's reference offer
+        // hasn't been priced yet — see QuoteRequestController::store() —
+        // so the card can show "not set" and the sort/preview code can
+        // tell "free" apart from "zero".
+        $offeredPrice = $offer->offered_price !== null ? (float) $offer->offered_price : null;
+
         return [
             'id' => $offer->id,
             'avinode_request_id' => $offer->avinode_request_id,
             'operator_name' => $offer->operator_name,
             'aircraft_type' => $offer->aircraft_type,
             'aircraft_registration' => $offer->aircraft_registration,
-            'offered_price' => (float) $offer->offered_price,
+            'offered_price' => $offeredPrice,
             'offered_currency' => $offer->offered_currency,
             'year_of_make' => $offer->year_of_make,
             'max_pax' => $offer->max_pax,
@@ -44,6 +50,7 @@ class QuoteOfferPresenter
             'commission_value' => $offer->commission_value !== null ? (float) $offer->commission_value : null,
             'final_price' => $offer->final_price !== null ? (float) $offer->final_price : null,
             'selected' => $offer->selected,
+            'source' => $offer->source,
             // Local time only — see AvinodeQuoteEmailParser::extractDetailBlocks(),
             // which never captures the UTC figures the raw body also has.
             'itinerary' => $itinerary,

@@ -38,9 +38,16 @@ return [
             'database' => env('DB_DATABASE', database_path('database.sqlite')),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
-            'busy_timeout' => null,
-            'journal_mode' => null,
-            'synchronous' => null,
+            // WAL lets readers/writers proceed concurrently instead of
+            // blocking on SQLite's default rollback-journal exclusive lock,
+            // and busy_timeout makes any remaining contention wait+retry
+            // (silently, up to this many ms) rather than surface as
+            // "database is locked". Needed because artisan serve, the
+            // queue worker, and every request's session/cache writes all
+            // hit this same file concurrently.
+            'busy_timeout' => env('DB_BUSY_TIMEOUT', 5000),
+            'journal_mode' => env('DB_JOURNAL_MODE', 'WAL'),
+            'synchronous' => env('DB_SYNCHRONOUS', 'NORMAL'),
             'transaction_mode' => 'DEFERRED',
         ],
 

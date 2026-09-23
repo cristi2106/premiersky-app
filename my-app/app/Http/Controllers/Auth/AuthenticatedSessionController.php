@@ -29,6 +29,20 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        // Submitting this form is a request to establish a session as the
+        // identity in the payload, so any session already in the browser is
+        // discarded before the credentials are judged. Without this, a failed
+        // attempt would bounce back to GET /login, and the 'guest' middleware
+        // there would forward the still-signed-in user to the dashboard --
+        // making a wrong password look like a successful login and hiding the
+        // validation error.
+        if (Auth::guard('web')->check()) {
+            Auth::guard('web')->logout();
+
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
         $request->authenticate();
 
         $request->session()->regenerate();

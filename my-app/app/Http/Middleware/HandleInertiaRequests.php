@@ -34,6 +34,14 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            // Read once, here, so every controller's redirect needs
+            // nothing but ->with('success', '…') / ->with('error', '…')
+            // to surface a toast — see resources/js/Components/Toast.vue,
+            // mounted once in AdminLayout for every authenticated page.
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+            ],
         ];
     }
 }

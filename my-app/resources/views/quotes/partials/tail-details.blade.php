@@ -5,7 +5,7 @@
     <div class="amenities">
         <div class="detail-label">Amenities</div>
         @foreach ($tail['amenities'] as $amenity)
-            <span class="amenity-badge">{{ $amenity }}</span>
+            <span class="detail-value amenity-badge">{{ $amenity }}</span>
         @endforeach
     </div>
 @endif
@@ -16,7 +16,7 @@
             <table class="detail-row">
                 <tr>
                     <td class="detail-label-inline">Seats –</td>
-                    <td class="cabin-seats">{{ $tail['seats'] }}</td>
+                    <td class="detail-value cabin-seats">{{ $tail['seats'] }}</td>
                 </tr>
             </table>
         @endif
@@ -24,7 +24,7 @@
             <table class="detail-row cabin-size-row">
                 <tr>
                     <td class="detail-label-inline">Cabin size –</td>
-                    <td class="cabin-summary">{{ $tail['cabin_summary'] }}</td>
+                    <td class="detail-value cabin-summary">{{ $tail['cabin_summary'] }}</td>
                 </tr>
             </table>
         @endif

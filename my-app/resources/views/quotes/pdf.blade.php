@@ -1,7 +1,11 @@
 <?php
     $optionCount = count($offers);
+    $legCount = count($itineraryLegs);
     $formatAmount = fn (float $amount, string $currency) => number_format($amount, 2).' '.$currency;
-    $logoPath = resource_path('images/LOGO2023.png');
+    $durationLabel = function (int $minutes) {
+        return sprintf('%dh %02dm', intdiv($minutes, 60), $minutes % 60);
+    };
+    $logoPath = resource_path('images/logo.png');
     $logoData = is_file($logoPath)
         ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
         : null;
@@ -16,6 +20,14 @@
              system, so most of this is intentionally identical rather than
              reinvented. Only what's specific to a quotation's own content
              (offer option boxes, photos, amenity/cabin chips) is new. --}}
+        :root {
+            /* Premier Sky brand accent, matched to the logo's wing color —
+               same variable contracts/pdf.blade.php defines, needed here
+               too now that a manually-created quote's multi-leg Itinerary
+               table uses the same .leg-label styling as a Contract's. */
+            --accent-gold: #873F1E;
+        }
+
         @page {
             margin: 90px 45px 90px 45px;
         }
@@ -90,8 +102,11 @@
         }
 
         .header-row .logo-cell img {
+            /* Only width is set here — logo.png is cropped tight to its
+               artwork (891x195), so height is left unset and scales
+               proportionally from that intrinsic ratio. A fixed height
+               alongside a fixed width previously stretched the logo. */
             width: 185px;
-            height: 74px;
             margin-bottom: 70px;
         }
 
@@ -163,21 +178,23 @@
             white-space: nowrap;
         }
 
+        table.specs td.leg-label {
+            font-weight: bold;
+            color: var(--accent-gold);
+            white-space: nowrap;
+        }
+
         .aircraft-model {
             font-size: 10.5px;
             font-weight: bold;
         }
 
-        .price-amount {
-            font-size: 9.5px;
-            font-weight: bold;
-            color: #111827;
-        }
-
-        .price-total-hero {
-            font-size: 13px;
-            font-weight: bold;
-        }
+        /* .price-amount (the div wrapping the price span, in
+           quotes.partials.price-block) intentionally has no rule here —
+           the price amount is an .aircraft-model span, so all its font
+           styling comes from that shared class instead. The div itself
+           still exists as a plain block-level wrapper, keeping the price
+           on its own line under .price-label. */
 
         /* --- Offer options --- */
 
@@ -193,12 +210,21 @@
             margin-bottom: 0;
         }
 
-        .option-label {
+        /* Shared font/color for every card-level uppercase label —
+           "Option N" and "Total Price" — so they read as one family
+           rather than each being its own independently-set style.
+           .option-label / .price-label now only carry their own spacing
+           (margin-bottom differs since they sit in different positions
+           in the card). */
+        .card-label {
             font-size: 8px;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: #434c60;
+        }
+
+        .option-label {
             margin-bottom: 4px;
         }
 
@@ -275,6 +301,18 @@
             margin-top: 6px;
         }
 
+        /* Shared font-size/weight for every detail *value* below an
+           uppercase .detail-label / .detail-label-inline — amenity
+           badges, the Seats figure, and the Cabin size figure (baggage
+           included, same cell). Applied alongside each element's own
+           class (.amenity-badge, .cabin-seats, .cabin-summary) so those
+           keep their own color/background/spacing, but can't drift onto
+           a different size or weight from one another again. */
+        .detail-value {
+            font-size: 8.5px;
+            font-weight: normal;
+        }
+
         .amenity-badge {
             display: inline-block;
             background-color: #f3f4f6;
@@ -282,7 +320,6 @@
             border-radius: 9px;
             padding: 3px 8px;
             margin: 0 4px 4px 0;
-            font-size: 8px;
         }
 
         .cabin-block {
@@ -316,8 +353,6 @@
         }
 
         .cabin-seats {
-            font-size: 9px;
-            font-weight: normal;
             color: #111827;
         }
 
@@ -333,7 +368,6 @@
         }
 
         .cabin-summary {
-            font-size: 8.5px;
             color: #374151;
         }
 
@@ -360,10 +394,6 @@
         }
 
         .price-label {
-            font-size: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            color: #6b7280;
             margin-bottom: 2px;
         }
 
@@ -394,9 +424,7 @@
     <table class="header-row">
         <tr>
             <td class="logo-cell">
-                @if ($logoData)
-                    <div><img src="{{ $logoData }}" alt="Company logo"></div>
-                @endif
+                <div>@include('pdf.partials.logo')</div>
                 <h1 class="quotation-title">QUOTATION</h1>
             </td>
             <td class="meta-cell">
@@ -424,23 +452,39 @@
         <table class="specs">
             <thead>
                 <tr>
+                    @if ($legCount > 1)
+                        <th class="nowrap-col">Leg</th>
+                    @endif
                     <th class="nowrap-col">Date</th>
                     <th>From</th>
                     <th>To</th>
                     <th class="nowrap-col">Take-off</th>
                     <th class="nowrap-col">Arrival</th>
+                    @if ($showFlightTime)
+                        <th class="nowrap-col">Flight Time</th>
+                    @endif
                     <th class="nowrap-col">Pax</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td class="nowrap-col">{{ $itinerary['date'] ?? '—' }}</td>
-                    <td>{{ $itinerary['departure'] ?? '—' }}</td>
-                    <td>{{ $itinerary['arrival'] ?? '—' }}</td>
-                    <td class="nowrap-col">{{ $itinerary['departure_time'] ?? '—' }}</td>
-                    <td class="nowrap-col">{{ $itinerary['arrival_time'] ?? '—' }}</td>
-                    <td class="nowrap-col">{{ $itinerary['pax'] ?? '—' }}</td>
-                </tr>
+                @foreach ($itineraryLegs as $index => $leg)
+                    <tr>
+                        @if ($legCount > 1)
+                            <td class="leg-label">{{ $index + 1 }}</td>
+                        @endif
+                        <td class="nowrap-col">{{ $leg['date'] ?? '—' }}</td>
+                        <td>{{ $leg['departure'] ?? '—' }}</td>
+                        <td>{{ $leg['arrival'] ?? '—' }}</td>
+                        <td class="nowrap-col">{{ $leg['departure_time'] ?? '—' }}</td>
+                        <td class="nowrap-col">{{ $leg['arrival_time'] ?? '—' }}</td>
+                        @if ($showFlightTime)
+                            <td class="nowrap-col">
+                                {{ $leg['flight_duration_minutes'] !== null ? $durationLabel($leg['flight_duration_minutes']) : '—' }}
+                            </td>
+                        @endif
+                        <td class="nowrap-col">{{ $leg['pax'] ?? '—' }}</td>
+                    </tr>
+                @endforeach
             </tbody>
         </table>
     </div>
@@ -461,7 +505,7 @@
         @foreach ($offers as $index => $offer)
             <div class="box offer-option">
                 @if ($optionCount > 1)
-                    <div class="option-label">Option {{ $index + 1 }}</div>
+                    <div class="card-label option-label">Option {{ $index + 1 }}</div>
                 @endif
 
                 <div class="aircraft-model">{{ $offer['aircraft_type'] }}</div>

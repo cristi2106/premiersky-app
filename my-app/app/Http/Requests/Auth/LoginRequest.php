@@ -45,9 +45,13 @@ class LoginRequest extends FormRequest
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
+            // Pin the redirect to the login page. The default is "back",
+            // which can resolve to a page the failed attempt is not allowed to
+            // see (e.g. the dashboard); the error is then consumed by that
+            // extra hop and the user just sees the form again with no message.
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
-            ]);
+            ])->redirectTo(route('login'));
         }
 
         RateLimiter::clear($this->throttleKey());
@@ -73,7 +77,7 @@ class LoginRequest extends FormRequest
                 'seconds' => $seconds,
                 'minutes' => ceil($seconds / 60),
             ]),
-        ]);
+        ])->redirectTo(route('login'));
     }
 
     /**

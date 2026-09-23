@@ -1,70 +1,65 @@
 <script setup>
 import { ref } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
+import { Calculator, ChevronLeft, Database, FileText, LayoutDashboard, MessageCircle } from 'lucide-vue-next';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import BottomNav from '@/Components/BottomNav.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import SidebarNav from '@/Components/SidebarNav.vue';
+import Toast from '@/Components/Toast.vue';
 
 defineProps({
     title: {
         type: String,
         default: '',
     },
+    // Small "back to <label>" link shown above the title, for pages that
+    // live under a hub (e.g. Database) rather than a top-level sidebar
+    // item — { label: String, route: String }.
+    breadcrumb: {
+        type: Object,
+        default: null,
+    },
 });
 
 const page = usePage();
 const sidebarOpen = ref(false);
 
-// Add new modules here as they're built out (Contracts, Quotes).
+// Add new modules here as they're built out (Contracts, Quotes). `icon` is
+// a lucide-vue-next component, rendered via <component :is="item.icon" />
+// in SidebarNav — see that component's own doc comment on sizing.
 const navigation = [
     {
         name: 'Dashboard',
         route: 'dashboard',
-        icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
+        icon: LayoutDashboard,
     },
     {
-        name: 'Clients',
-        route: 'clients.index',
-        active: 'clients.*',
-        icon: 'M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-4-4',
-    },
-    {
-        name: 'Airports',
-        route: 'airports.index',
-        active: 'airports.*',
-        icon: 'M12 21c-4.418-3.5-7-7.239-7-10.5A7 7 0 1119 10.5c0 3.261-2.582 7-7 10.5zM12 13a2.5 2.5 0 100-5 2.5 2.5 0 000 5z',
-    },
-    {
-        name: 'Aircraft Types',
-        route: 'aircraft-speed-references.index',
-        active: 'aircraft-speed-references.*',
-        icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
+        name: 'Database',
+        route: 'database.index',
+        // Lights up for the hub itself and for any of the four modules it
+        // groups, so it still reads as "current section" once inside one.
+        active: ['database.*', 'clients.*', 'airports.*', 'aircraft-speed-references.*', 'tails.*'],
+        icon: Database,
     },
     {
         name: 'Flight Calculator',
         route: 'flight-calculator.index',
         active: 'flight-calculator.*',
-        icon: 'M9 7h6m0 10v-3m-3 3v-3m-3 3v-3m9-10H6a2 2 0 00-2 2v14l4-2 4 2 4-2 4 2V5a2 2 0 00-2-2z',
+        icon: Calculator,
     },
     {
         name: 'Contracts',
         route: 'contracts.index',
         active: 'contracts.*',
-        icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
-    },
-    {
-        name: 'Tails',
-        route: 'tails.index',
-        active: 'tails.*',
-        icon: 'M7 7h.01M7 3h5.586a1 1 0 01.707.293l6.414 6.414a1 1 0 010 1.414l-8.586 8.586a1 1 0 01-1.414 0l-6.414-6.414A1 1 0 013 12.586V7a4 4 0 014-4z',
+        icon: FileText,
     },
     {
         name: 'Quotes',
         route: 'quotes.index',
         active: 'quotes.*',
-        icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z',
+        icon: MessageCircle,
     },
 ];
 </script>
@@ -182,11 +177,22 @@ const navigation = [
                     </svg>
                 </button>
 
-                <h1
-                    class="min-w-0 flex-1 truncate text-xl font-semibold tracking-tight text-gray-900"
-                >
-                    {{ title }}
-                </h1>
+                <div class="flex min-w-0 flex-1 items-center gap-2">
+                    <Link
+                        v-if="breadcrumb"
+                        :href="route(breadcrumb.route)"
+                        class="inline-flex shrink-0 items-center gap-1 text-lg font-medium text-gray-500 hover:text-gray-700"
+                    >
+                        <ChevronLeft class="h-5 w-5 shrink-0" />
+                        {{ breadcrumb.label }}
+                    </Link>
+
+                    <span v-if="breadcrumb" class="shrink-0 text-lg text-gray-300">/</span>
+
+                    <h1 class="truncate text-xl font-semibold tracking-tight text-gray-900">
+                        {{ title }}
+                    </h1>
+                </div>
 
                 <Dropdown align="right" width="48">
                     <template #trigger>
@@ -241,7 +247,7 @@ const navigation = [
 
             <!-- Page content -->
             <main class="flex-1">
-                <div class="mx-auto max-w-7xl px-4 pb-44 pt-6 sm:px-6 md:pb-6 lg:px-8">
+                <div class="mx-auto max-w-7xl px-4 pb-40 pt-6 sm:px-6 md:pb-6 lg:px-8">
                     <slot />
                 </div>
             </main>
@@ -249,4 +255,6 @@ const navigation = [
 
         <BottomNav />
     </div>
+
+    <Toast />
 </template>

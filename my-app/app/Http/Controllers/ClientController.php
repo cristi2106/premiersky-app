@@ -58,7 +58,7 @@ class ClientController extends Controller
     {
         Client::create($this->validated($request));
 
-        return Redirect::route('clients.index');
+        return Redirect::route('clients.index')->with('success', 'Client created.');
     }
 
     /**
@@ -78,7 +78,7 @@ class ClientController extends Controller
     {
         $client->update($this->validated($request));
 
-        return Redirect::route('clients.index');
+        return Redirect::route('clients.index')->with('success', 'Client updated.');
     }
 
     /**
@@ -88,7 +88,7 @@ class ClientController extends Controller
     {
         $client->delete();
 
-        return Redirect::route('clients.index');
+        return Redirect::route('clients.index')->with('success', 'Client deleted.');
     }
 
     /**

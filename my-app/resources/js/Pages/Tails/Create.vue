@@ -72,7 +72,7 @@ const submit = () => {
 <template>
     <Head title="New Tail" />
 
-    <AdminLayout title="New Tail">
+    <AdminLayout title="New Tail" :breadcrumb="{ label: 'Database', route: 'database.index' }">
         <div class="card max-w-3xl p-6">
             <form class="space-y-6" @submit.prevent="submit">
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -219,8 +219,7 @@ const submit = () => {
                     </Link>
 
                     <PrimaryButton
-                        :class="{ 'opacity-25': form.processing }"
-                        :disabled="form.processing"
+                        :loading="form.processing"
                     >
                         Save Tail
                     </PrimaryButton>

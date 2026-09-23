@@ -23,6 +23,16 @@ const props = defineProps({
         type: Boolean,
         default: true,
     },
+    // When false, the live-calc panel (distance / flight time / arrival)
+    // is hidden and the calc request is skipped entirely. Used by the
+    // Create Manual Quote dialog, which only collects the leg inputs and
+    // leaves the calculation to the server on store
+    // (QuoteRequestController::saveLegs()). Every other caller leaves this
+    // on to show the running preview as fields are filled.
+    showCalculation: {
+        type: Boolean,
+        default: true,
+    },
     errors: {
         type: Object,
         default: () => ({}),
@@ -99,7 +109,7 @@ watch(
         errorMessage.value = '';
         clearTimeout(debounceTimer);
 
-        if (!readyToCalculate.value) {
+        if (!props.showCalculation || !readyToCalculate.value) {
             return;
         }
 
@@ -117,15 +127,15 @@ watch(
             <button
                 v-if="canRemove"
                 type="button"
-                class="-my-1 cursor-pointer rounded-md px-2 py-1 text-sm font-medium text-red-600 transition duration-150 ease-in-out hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                class="-my-1 cursor-pointer rounded-lg px-2 py-1 text-sm font-medium text-red-600 transition duration-150 ease-in-out hover:bg-red-50 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                 @click="emit('remove')"
             >
                 Remove
             </button>
         </div>
 
-        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
+        <div class="mt-4 grid grid-cols-2 gap-4">
+            <div class="col-span-2 sm:col-span-1">
                 <InputLabel :for="`leg-${legNumber}-departure-airport`" value="Departure Airport" />
                 <SearchableSelect
                     :id="`leg-${legNumber}-departure-airport`"
@@ -146,7 +156,7 @@ watch(
                 <InputError class="mt-2" :message="errors.departure_airport_id" />
             </div>
 
-            <div>
+            <div class="col-span-2 sm:col-span-1">
                 <InputLabel :for="`leg-${legNumber}-arrival-airport`" value="Arrival Airport" />
                 <SearchableSelect
                     :id="`leg-${legNumber}-arrival-airport`"
@@ -170,41 +180,47 @@ watch(
                 <InputError v-else class="mt-2" :message="errors.arrival_airport_id" />
             </div>
 
-            <div>
-                <InputLabel :for="`leg-${legNumber}-date`" value="Flight Date" />
-                <TextInput
-                    :id="`leg-${legNumber}-date`"
-                    v-model="flightDate"
-                    type="date"
-                    class="mt-1 block w-full"
-                />
-                <InputError class="mt-2" :message="errors.flight_date" />
-            </div>
+            <!-- Date, ETD and Passengers share one row on every breakpoint —
+                 their own 3-column sub-grid rather than the 2-column grid
+                 the airports above use, so pax never falls onto a
+                 half-empty row of its own on desktop. -->
+            <div class="col-span-2 grid grid-cols-3 gap-3">
+                <div>
+                    <InputLabel :for="`leg-${legNumber}-date`" value="Flight Date" />
+                    <TextInput
+                        :id="`leg-${legNumber}-date`"
+                        v-model="flightDate"
+                        type="date"
+                        class="mt-1 block w-full"
+                    />
+                    <InputError class="mt-2" :message="errors.flight_date" />
+                </div>
 
-            <div>
-                <InputLabel :for="`leg-${legNumber}-time`" value="Departure Time (local)" />
-                <TimeInput
-                    :id="`leg-${legNumber}-time`"
-                    v-model="departureTime"
-                    class="mt-1 block w-full"
-                />
-                <InputError class="mt-2" :message="errors.departure_time" />
-            </div>
+                <div>
+                    <InputLabel :for="`leg-${legNumber}-time`" value="ETD (local)" />
+                    <TimeInput
+                        :id="`leg-${legNumber}-time`"
+                        v-model="departureTime"
+                        class="mt-1 block w-full"
+                    />
+                    <InputError class="mt-2" :message="errors.departure_time" />
+                </div>
 
-            <div>
-                <InputLabel :for="`leg-${legNumber}-pax`" value="Passengers" />
-                <TextInput
-                    :id="`leg-${legNumber}-pax`"
-                    v-model="pax"
-                    type="number"
-                    min="1"
-                    class="mt-1 block w-full"
-                />
-                <InputError class="mt-2" :message="errors.pax" />
+                <div>
+                    <InputLabel :for="`leg-${legNumber}-pax`" value="Passengers" />
+                    <TextInput
+                        :id="`leg-${legNumber}-pax`"
+                        v-model="pax"
+                        type="number"
+                        min="1"
+                        class="mt-1 block w-full"
+                    />
+                    <InputError class="mt-2" :message="errors.pax" />
+                </div>
             </div>
         </div>
 
-        <div class="mt-4 rounded-lg bg-gray-50 p-4">
+        <div v-if="showCalculation" class="mt-4 rounded-lg bg-gray-50 p-4">
             <div v-if="errorMessage" class="text-sm text-red-600">
                 {{ errorMessage }}
             </div>
