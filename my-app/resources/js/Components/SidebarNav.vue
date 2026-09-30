@@ -32,10 +32,10 @@ const isActive = (item) => {
             :key="item.name"
             :href="route(item.route)"
             @click="$emit('navigate')"
-            class="flex items-center gap-4 rounded-lg px-4 py-3.5 text-lg font-bold text-white transition duration-150 ease-in-out lg:gap-3.5 lg:px-3.5 lg:py-2.5 lg:text-base"
-            :class="isActive(item) ? 'bg-accent-600' : 'hover:bg-white/5'"
+            class="flex items-center gap-4 rounded-lg px-4 py-3.5 text-base font-bold transition duration-150 ease-in-out lg:gap-3.5 lg:px-3.5 lg:py-2.5 lg:text-sm"
+            :class="isActive(item) ? 'bg-accent-600 text-white' : 'text-gray-800 hover:bg-gray-200 hover:text-gray-950'"
         >
-            <component :is="item.icon" class="h-7 w-7 shrink-0 lg:h-6 lg:w-6" />
+            <component :is="item.icon" class="h-6 w-6 shrink-0 lg:h-5 lg:w-5" />
             {{ item.name }}
         </Link>
     </nav>

@@ -93,21 +93,18 @@ const navigation = [
         >
             <div
                 v-if="sidebarOpen"
-                class="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[80vw] flex-col bg-gray-950 lg:hidden"
+                class="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[80vw] flex-col border-r border-gray-200 bg-gray-100 lg:hidden"
             >
-                <div class="flex h-16 shrink-0 items-center justify-between px-4">
+                <div class="relative flex h-16 shrink-0 items-center justify-center border-b border-gray-300 px-4">
                     <Link
                         :href="route('dashboard')"
                         class="flex items-center gap-2"
                     >
-                        <ApplicationLogo class="h-8 w-8" />
-                        <span class="text-lg font-semibold tracking-tight text-white">
-                            PremierSky
-                        </span>
+                        <ApplicationLogo src="/images/logo.png" class="h-8 w-auto" />
                     </Link>
                     <button
                         type="button"
-                        class="rounded-lg p-2 text-gray-400 hover:bg-white/5 hover:text-white"
+                        class="absolute right-4 rounded-lg p-2 text-gray-500 hover:bg-gray-200 hover:text-gray-900"
                         @click="sidebarOpen = false"
                     >
                         <span class="sr-only">Close sidebar</span>
@@ -138,12 +135,9 @@ const navigation = [
         <div
             class="hidden lg:fixed lg:inset-y-0 lg:z-30 lg:flex lg:w-64 lg:flex-col"
         >
-            <div class="flex grow flex-col overflow-y-auto bg-gray-950">
-                <div class="flex h-16 shrink-0 items-center gap-2 px-6">
-                    <ApplicationLogo class="h-8 w-8" />
-                    <span class="text-lg font-semibold tracking-tight text-white">
-                        PremierSky
-                    </span>
+            <div class="flex grow flex-col overflow-y-auto border-r border-gray-200 bg-gray-100">
+                <div class="flex h-16 shrink-0 items-center justify-center border-b border-gray-300 px-6">
+                    <ApplicationLogo src="/images/logo.png" class="h-8 w-auto" />
                 </div>
 
                 <SidebarNav :navigation="navigation" />

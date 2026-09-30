@@ -1,6 +1,15 @@
+<script setup>
+defineProps({
+    src: {
+        type: String,
+        default: '/images/logo-icon.png',
+    },
+});
+</script>
+
 <template>
     <img
-        src="/images/logo-icon.png"
+        :src="src"
         alt="PremierSky"
         class="object-contain"
     >
