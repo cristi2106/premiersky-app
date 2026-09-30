@@ -32,12 +32,40 @@
     h3 {
         @apply tracking-tight;
     }
+
+    /* Every text input, select and textarea shares the same
+     * border-color + ring focus treatment (see DESIGN.md's Inputs
+     * component), but none of them set a transition on it — the focus
+     * ring currently just snaps in. One rule here, rather than adding
+     * transition-* to every field's own class string, so a field built
+     * later inherits the smooth version automatically. */
+    input,
+    select,
+    textarea {
+        transition:
+            border-color 150ms ease-in-out,
+            box-shadow 150ms ease-in-out;
+    }
 }
 
 @layer components {
-    /* Card — dashboard widgets, mobile table fallback rows */
+    /* Card — dashboard widgets, mobile table fallback rows, form
+     * sections, the login panel. A soft resting shadow (not just the
+     * border) is what reads as a genuine lifted surface rather than a
+     * flat rectangle; transition-shadow means anything that changes a
+     * card's shadow or ring later (selection state, .card-hover below)
+     * animates instead of snapping. */
     .card {
-        @apply rounded-xl border border-gray-200 bg-white;
+        @apply rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow duration-200;
+    }
+
+    /* Card-hover — add alongside .card only when the card itself *is*
+     * the clickable target (a dashboard module tile, an offer option) —
+     * never on a card that's just a static form-section container,
+     * since a hover affordance on something that doesn't respond to
+     * clicks is misleading rather than polished. */
+    .card-hover {
+        @apply cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md;
     }
 
     /* Status pill — contract status, offer status, etc. Pair with a tint below. */
@@ -58,6 +86,34 @@
     }
     .badge-neutral {
         @apply bg-gray-100 text-gray-600;
+    }
+}
+
+/*
+ * iOS Safari auto-zooms the page on focus for any input/select/textarea
+ * whose *computed* font-size is under 16px — and nearly every field in
+ * this app sets text-sm (14px) or smaller. Deliberately unlayered (not
+ * inside @layer base) and !important: Tailwind's utilities layer always
+ * wins over @layer base regardless of specificity, so a plain @layer
+ * base rule here would just lose to whatever text-sm/text-xs class the
+ * component already has. Unlayered + !important is the one combination
+ * nothing in the utilities layer — present or future — can outrank,
+ * which is the point: this has to hold for every field without relying
+ * on each new component remembering to opt in.
+ *
+ * Scoped to <640px — the same breakpoint the rest of the app already
+ * treats as "mobile" via its own sm: prefixes — so desktop keeps its
+ * denser text-sm sizing untouched.
+ *
+ * Do NOT fix future zoom complaints by adding maximum-scale=1 or
+ * user-scalable=no to the viewport meta tag instead — that disables
+ * pinch-zoom entirely, which is an accessibility regression, not a fix.
+ */
+@media (max-width: 639px) {
+    input,
+    select,
+    textarea {
+        font-size: 16px !important;
     }
 }
 

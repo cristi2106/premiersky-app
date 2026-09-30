@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\RetriesOnReferenceCollision;
 use App\Models\Airport;
 use App\Models\AircraftSpeedReference;
 use App\Models\Contract;
 use App\Models\ContractLeg;
 use App\Services\FlightCalculator;
+use App\Services\SequentialReferenceGenerator;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -20,6 +22,8 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class ContractController extends Controller
 {
+    use RetriesOnReferenceCollision;
+
     public function __construct(private readonly FlightCalculator $calculator) {}
 
     /**
@@ -66,22 +70,24 @@ class ContractController extends Controller
     {
         $data = $this->validated($request);
 
-        DB::transaction(function () use ($data) {
-            $contract = Contract::create([
-                'client_id' => $data['client_id'],
-                'aircraft_speed_reference_id' => $data['aircraft_speed_reference_id'],
-                'reference_number' => $this->nextReferenceNumber(),
-                'price' => $data['price'],
-                'currency' => $data['currency'],
-                'vat_percentage' => $data['vat_percentage'],
-                'special_information' => $data['special_information'] ?? null,
-                'cancellation_policy' => $data['cancellation_policy'] ?? null,
-            ]);
+        $this->retryOnReferenceCollision(function () use ($data) {
+            DB::transaction(function () use ($data) {
+                $contract = Contract::create([
+                    'client_id' => $data['client_id'],
+                    'aircraft_speed_reference_id' => $data['aircraft_speed_reference_id'],
+                    'reference_number' => $this->nextReferenceNumber(),
+                    'price' => $data['price'],
+                    'currency' => $data['currency'],
+                    'vat_percentage' => $data['vat_percentage'],
+                    'special_information' => $data['special_information'] ?? null,
+                    'cancellation_policy' => $data['cancellation_policy'] ?? null,
+                ]);
 
-            $this->saveLegs($contract, $data['legs']);
+                $this->saveLegs($contract, $data['legs']);
+            });
         });
 
-        return Redirect::route('contracts.index');
+        return Redirect::route('contracts.index')->with('success', 'Contract created.');
     }
 
     /**
@@ -92,6 +98,11 @@ class ContractController extends Controller
         $contract->load(['legs.departureAirport', 'legs.arrivalAirport']);
 
         return Inertia::render('Contracts/Edit', [
+            // Set when QuoteOfferController::generateContract() just
+            // redirected here from the Quotes module — see its own doc
+            // comment for why this landing page, specifically, is the
+            // review step for a best-effort-matched draft.
+            'status' => session('status'),
             'contract' => [
                 'id' => $contract->id,
                 'reference_number' => $contract->reference_number,
@@ -141,7 +152,7 @@ class ContractController extends Controller
             $this->saveLegs($contract, $data['legs']);
         });
 
-        return Redirect::route('contracts.index');
+        return Redirect::route('contracts.index')->with('success', 'Contract updated.');
     }
 
     /**
@@ -151,7 +162,7 @@ class ContractController extends Controller
     {
         $contract->delete();
 
-        return Redirect::route('contracts.index');
+        return Redirect::route('contracts.index')->with('success', 'Contract deleted.');
     }
 
     /**
@@ -214,17 +225,15 @@ class ContractController extends Controller
     /**
      * Auto-generate the next contract reference number as "MM-YYYY/NN",
      * where NN restarts from 01 each calendar month.
+     *
+     * See SequentialReferenceGenerator for why this is a max-suffix
+     * lookup rather than a row count, and retryOnReferenceCollision() at
+     * this method's call site for how a same-instant collision with
+     * another request is handled.
      */
     private function nextReferenceNumber(): string
     {
-        $prefix = now()->format('m-Y');
-
-        $count = Contract::query()
-            ->where('reference_number', 'like', "{$prefix}/%")
-            ->lockForUpdate()
-            ->count();
-
-        return sprintf('%s/%02d', $prefix, $count + 1);
+        return SequentialReferenceGenerator::next(Contract::class, 'reference_number');
     }
 
     /**

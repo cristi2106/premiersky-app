@@ -35,9 +35,4 @@ return [
         ],
     ],
 
-    'aviapages' => [
-        'key' => env('AVIAPAGES_API_KEY'),
-        'base_url' => env('AVIAPAGES_BASE_URL', 'https://api.aviapages.com/v3'),
-    ],
-
 ];

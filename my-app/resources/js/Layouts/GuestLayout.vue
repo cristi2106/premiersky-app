@@ -15,7 +15,7 @@ import { Link } from '@inertiajs/vue3';
         </Link>
 
         <div
-            class="mt-8 w-full rounded-xl border border-gray-200 bg-white px-6 py-8 sm:max-w-md sm:px-8"
+            class="card mt-8 w-full px-6 py-8 sm:max-w-md sm:px-8"
         >
             <slot />
         </div>

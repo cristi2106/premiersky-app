@@ -82,7 +82,7 @@ class AircraftSpeedReferenceController extends Controller
 
         AircraftSpeedReference::create($data);
 
-        return Redirect::route('aircraft-speed-references.index');
+        return Redirect::route('aircraft-speed-references.index')->with('success', 'Aircraft type created.');
     }
 
     /**
@@ -104,7 +104,7 @@ class AircraftSpeedReferenceController extends Controller
 
         $aircraftSpeedReference->update($data);
 
-        return Redirect::route('aircraft-speed-references.index');
+        return Redirect::route('aircraft-speed-references.index')->with('success', 'Aircraft type updated.');
     }
 
     /**
@@ -114,7 +114,7 @@ class AircraftSpeedReferenceController extends Controller
     {
         $aircraftSpeedReference->delete();
 
-        return Redirect::route('aircraft-speed-references.index');
+        return Redirect::route('aircraft-speed-references.index')->with('success', 'Aircraft type deleted.');
     }
 
     /**

@@ -17,18 +17,18 @@ defineProps({
 
     <AdminLayout title="Profile">
         <div class="space-y-6">
-            <div class="bg-white p-4 shadow sm:rounded-lg sm:p-8">
+            <div class="card p-4 sm:p-6">
                 <UpdateProfileInformationForm
                     :status="status"
                     class="max-w-xl"
                 />
             </div>
 
-            <div class="bg-white p-4 shadow sm:rounded-lg sm:p-8">
+            <div class="card p-4 sm:p-6">
                 <UpdatePasswordForm class="max-w-xl" />
             </div>
 
-            <div class="bg-white p-4 shadow sm:rounded-lg sm:p-8">
+            <div class="card p-4 sm:p-6">
                 <DeleteUserForm class="max-w-xl" />
             </div>
         </div>

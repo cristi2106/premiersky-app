@@ -11,6 +11,7 @@ class Tail extends Model
     public const CATEGORIES = [
         'Piston',
         'Turbo Prop',
+        'Helicopter',
         'Entry Level Jet',
         'Light Jet',
         'Super Light Jet',

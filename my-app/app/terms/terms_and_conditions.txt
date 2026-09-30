@@ -64,8 +64,32 @@ The Charterer acknowledges that the aircraft type and registration specified in 
 13. Carrier Status and Insurance
  The Broker shall use commercially reasonable efforts to ensure that the Flight(s) are operated by a Carrier holding a valid Air Operator Certificate (AOC) issued by a competent aeronautical authority, and holding aircraft liability and passenger liability insurance in amounts consistent with the Carrier's regulatory obligations and, where applicable, Regulation (EC) No. 785/2004 and the Montreal Convention 1999. The Charterer may request written confirmation of the Carrier's AOC status and insurance coverage prior to departure.
 
-14. Data Protection (GDPR)
- The Broker shall process personal data provided by the Charterer and passengers (including full names, contact details, and travel document information) solely for the purposes of arranging and operating the Flight(s), complying with applicable security, customs, and border-control requirements, and as otherwise required by law, in accordance with Regulation (EU) 2016/679 (GDPR). Such data may be shared with the Carrier, relevant airports, customs and border authorities, and other parties as reasonably necessary to perform the Flight(s). The Charterer confirms that it has obtained the necessary authority and consent from each passenger to provide their personal data to the Broker for these purposes.
+14. GDPR and Confidentiality
+ By signing the charter agreement, the Data Controller (the Chartering Client/Organization) and the Data Processor / Service Provider (the Charter Flight Operator/Broker), collectively referred to as the "Parties," also agree on the following:
+ 
+14.1 Purpose & Scope
+ The Service Provider provides passenger charter flight services to the Data Controller. In performing these services, the Service Provider must process Personal Data on behalf of the Data Controller.
+ This Agreement ensures that such processing complies with the General Data Protection Regulation (GDPR) (EU) 2016/679, specifically Article 28(3)(b), binding all personnel to strict confidentiality.
+ 
+14.2 Scope of Flight-Related Personal Data
+ The Personal Data covered under this Agreement includes all information relating to passengers, crew, and coordinators provided for the fulfillment of the charter flight operations, including but not limited to:
+ - Passenger Manifest Data: Full names, gender, dates of birth, nationalities, and contact details.
+ - Identification Documents: Passport numbers, visa data, national ID cards, and expiry dates.
+ - Special Categories of Data: Dietary restrictions (implying religious/philosophical beliefs) or medical/mobility needs requiring special assistance.
+ - Operational Logistics: Flight itineraries, ground transport details, and frequent flyer numbers.
+ 
+14.3 Confidentiality Obligations
+ The Service Provider hereby agrees and undertakes that it shall:
+ a) Treat all passenger and flight-related Personal Data as strictly confidential and process it solely on the documented instructions of the Data Controller.
+ b) Ensure that all persons authorized to process the Personal Data (including flight crews, ground handlers, and administrative staff) have committed themselves to confidentiality or are under an appropriate statutory obligation of secrecy.
+ c) Limit access to Personal Data strictly to personnel who reasonably require access to execute, manage, or clear the charter flight operations.
+ d) Implement robust technical and organizational security measures to protect data against unauthorized access, border-crossing issues, or accidental loss.
+ 
+14.4 International Transfers & Legal Disclosure
+ Charter operations naturally require sharing Passenger Manifests with immigration authorities, customs, and airport security both within and outside the EEA. The Service Provider is permitted to disclose Personal Data to these entities exclusively to the extent required by international aviation laws, border control protocols, or local authorities. Any other international transfers must utilize approved GDPR safeguards (e.g., Standard Contractual Clauses) unless covered by legal exemptions for international transit.
+ 
+14.5 Duration and Survival
+ The obligations of confidentiality under this Agreement shall take effect on the date of execution and shall survive the termination, expiration, or cancellation of the primary aviation services agreement indefinitely with respect to any retained personal passenger records.
 
 15. Governing Law and Jurisdiction
  This Agreement and any dispute or claim arising out of or in connection with it, including its subject matter, formation, or validity, shall be governed by and construed in accordance with the laws of Romania. The parties submit to the exclusive jurisdiction of the Romanian courts to settle any dispute arising out of or in connection with this Agreement.

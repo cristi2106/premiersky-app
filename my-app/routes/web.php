@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\AircraftSpeedReferenceController;
 use App\Http\Controllers\AirportController;
-use App\Http\Controllers\CharterFleetController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\FlightCalculatorController;
@@ -25,6 +24,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    Route::get('/database', function () {
+        return Inertia::render('Database/Index');
+    })->name('database.index');
+
     Route::get('clients/search', [ClientController::class, 'search'])->name('clients.search');
     Route::resource('clients', ClientController::class)->except('show');
 
@@ -40,14 +43,19 @@ Route::middleware('auth')->group(function () {
     Route::get('contracts/{contract}/pdf', [ContractController::class, 'pdf'])->name('contracts.pdf');
     Route::resource('contracts', ContractController::class)->except('show');
 
-    Route::get('charter-fleet', [CharterFleetController::class, 'index'])->name('charter-fleet.index');
-    Route::post('charter-fleet/sync', [CharterFleetController::class, 'sync'])->name('charter-fleet.sync');
-
+    Route::get('tails/search', [TailController::class, 'search'])->name('tails.search');
     Route::resource('tails', TailController::class)->except('show');
 
     Route::get('quotes', [QuoteController::class, 'index'])->name('quotes.index');
+    Route::post('quote-requests/{quoteRequest}/offers', [QuoteOfferController::class, 'store'])->name('quote-requests.offers.store');
     Route::patch('quote-offers/{quoteOffer}', [QuoteOfferController::class, 'update'])->name('quote-offers.update');
+    Route::post('quote-offers/{quoteOffer}/generate-contract', [QuoteOfferController::class, 'generateContract'])->name('quote-offers.generate-contract');
+    Route::post('quote-requests', [QuoteRequestController::class, 'store'])->name('quote-requests.store');
+    Route::get('quote-requests/{quoteRequest}/schedule', [QuoteRequestController::class, 'editSchedule'])->name('quote-requests.schedule.edit');
+    Route::put('quote-requests/{quoteRequest}/schedule', [QuoteRequestController::class, 'updateSchedule'])->name('quote-requests.schedule.update');
+    Route::delete('quotes/history', [QuoteRequestController::class, 'clearHistory'])->name('quote-requests.clear-history');
     Route::patch('quote-requests/{quoteRequest}', [QuoteRequestController::class, 'update'])->name('quote-requests.update');
+    Route::delete('quote-requests/{quoteRequest}', [QuoteRequestController::class, 'destroy'])->name('quote-requests.destroy');
     Route::get('quote-requests/{quoteRequest}/pdf', [QuoteRequestController::class, 'pdf'])->name('quote-requests.pdf');
 });
 

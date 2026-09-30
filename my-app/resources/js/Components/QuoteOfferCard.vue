@@ -1,7 +1,8 @@
 <script setup>
-import Badge from '@/Components/Badge.vue';
 import Checkbox from '@/Components/Checkbox.vue';
 import InputLabel from '@/Components/InputLabel.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
+import { router } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 
 const props = defineProps({
@@ -9,10 +10,52 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    // Whether the quotation panel above already has a client selected —
+    // Generate Contract needs one (a Contract always belongs to a
+    // client), so the button stays disabled until then rather than
+    // failing after the fact. Owned by the parent (Quotes/Index.vue),
+    // same reasoning as applyToAll below: it's quote-wide state, not
+    // this card's own.
+    hasClient: {
+        type: Boolean,
+        default: false,
+    },
+    // "Apply to all" — a quote-wide setting, so it's owned by the parent
+    // (Quotes/Index.vue) rather than local state here, and handed to
+    // every card so any of them can both drive and receive a sync. Only
+    // the card the parent designates (the cheapest offer, i.e. this
+    // quote's "Option 1") actually renders the checkbox.
+    applyToAll: {
+        type: Boolean,
+        default: false,
+    },
+    // The last {type, value} committed by whichever card was edited
+    // while applyToAll was on — null until that first happens. Kept as
+    // a single shared object (rather than each card reaching into
+    // siblings' state) so every card only ever needs to compare against
+    // one source of truth.
+    sharedCommission: {
+        type: Object,
+        default: null,
+    },
+    showApplyToAllCheckbox: {
+        type: Boolean,
+        default: false,
+    },
 });
+
+const emit = defineEmits(['update:applyToAll', 'commission-changed']);
 
 // Local editable copies — the offer prop only reflects the last value the
 // server confirmed, so typing shouldn't wait on a round-trip to show up.
+// Price and currency are editable here because a manual quote's
+// auto-created reference offer lands unpriced (see
+// QuoteRequestController::store()) — for an email-pulled or "Add Offer"
+// offer they're just already filled in.
+const offeredPrice = ref(
+    props.offer.offered_price !== null ? String(props.offer.offered_price) : ''
+);
+const offeredCurrency = ref(props.offer.offered_currency);
 const commissionType = ref(props.offer.commission_type);
 const commissionValue = ref(
     props.offer.commission_value !== null ? String(props.offer.commission_value) : ''
@@ -22,19 +65,50 @@ const savedAt = ref(null);
 const selected = ref(props.offer.selected);
 const savingSelection = ref(false);
 
+// The currency to label money inputs/outputs with — the local pick if
+// one's been made, otherwise whatever the server last confirmed.
+const displayCurrency = computed(() => offeredCurrency.value || props.offer.offered_currency || '');
+
 // Instant feedback as you type — mirrors QuoteOffer::calculateFinalPrice()
 // exactly, but the persisted number always comes back from the server
-// afterwards, since that's the one that's trusted.
+// afterwards, since that's the one that's trusted. Null while the offer
+// has no price yet (nothing to add a commission onto).
 const liveFinalPrice = computed(() => {
+    const price = props.offer.offered_price;
     const value = parseFloat(commissionValue.value);
 
-    if (!commissionType.value || Number.isNaN(value)) {
+    if (price === null || price === undefined || !commissionType.value || Number.isNaN(value)) {
         return null;
     }
 
     return commissionType.value === 'percentage'
-        ? props.offer.offered_price * (1 + value / 100)
-        : props.offer.offered_price + value;
+        ? price * (1 + value / 100)
+        : price + value;
+});
+
+// Year of make, Max PAX and Flight time collapsed into one line (e.g.
+// "2011 · 8 PAX · 03:25") rather than three separate stat columns — the
+// list reads as a compact scan of many offers, not one dialog-box-style
+// card per offer. Distance isn't part of it; it's dropped entirely, and
+// departure/arrival now live only in the shared schedule block above the
+// list (see Quotes/Index.vue), since that's identical for every offer on
+// the same trip.
+const offerStats = computed(() => {
+    const parts = [];
+
+    if (props.offer.year_of_make) {
+        parts.push(props.offer.year_of_make);
+    }
+
+    if (props.offer.max_pax) {
+        parts.push(`${props.offer.max_pax} PAX`);
+    }
+
+    if (props.offer.flight_duration) {
+        parts.push(props.offer.flight_duration);
+    }
+
+    return parts.length > 0 ? parts.join(' · ') : '—';
 });
 
 const formatMoney = (value, currency) => {
@@ -52,7 +126,81 @@ const scheduleSave = () => {
     saveDebounce = setTimeout(save, 600);
 };
 
-watch([commissionType, commissionValue], scheduleSave);
+let priceSaveDebounce = null;
+
+const schedulePriceSave = () => {
+    clearTimeout(priceSaveDebounce);
+    priceSaveDebounce = setTimeout(savePrice, 600);
+};
+
+// Price/currency save on the same debounce as commission, and
+// independently of it — see QuoteOfferController::update(), where each
+// field group uses `sometimes`. Not part of the "Apply to all" sync,
+// which is a commission-only convenience.
+watch([offeredPrice, offeredCurrency], schedulePriceSave);
+
+// True once this card's own commissionType/commissionValue already equal
+// sharedCommission — i.e. the change we're looking at is one that just
+// arrived *from* the sync (see the sharedCommission watcher below), not
+// one this card originated. Comparing values rather than a "just
+// applied" flag sidesteps Vue's watcher batching entirely: there's no
+// ordering to get right, a value either matches the broadcast or it
+// doesn't.
+const matchesSharedCommission = () =>
+    props.sharedCommission !== null
+    && props.sharedCommission.type === commissionType.value
+    && props.sharedCommission.value === commissionValue.value;
+
+watch([commissionType, commissionValue], () => {
+    scheduleSave();
+
+    // Re-syncing all on every edit (not just the first) is deliberate —
+    // "Apply to all" is a standing rule while it's checked, not a
+    // one-time copy, so whichever option you touch next becomes the new
+    // value for the rest.
+    if (props.applyToAll && !matchesSharedCommission()) {
+        emit('commission-changed', { type: commissionType.value, value: commissionValue.value });
+    }
+});
+
+// Checking the box is itself the "apply now" action — it must broadcast
+// whatever this card (the anchor, since only it renders the checkbox)
+// already holds at that moment, not wait for a further edit. Without
+// this, ticking the box after already typing a commission is a no-op
+// until you touch the field again, which is what let stale commissions
+// on other options survive a checked "Apply to all": nothing ever told
+// them to overwrite. Unconditional — no matchesSharedCommission guard —
+// because the whole point is to overwrite every other option's value
+// with this one regardless of what they currently hold, including a
+// different commission set on a previous visit. Gated to the anchor
+// card only: every card receives the same applyToAll prop, so without
+// showApplyToAllCheckbox here all of them would fire at once and the
+// broadcast would race.
+watch(
+    () => props.applyToAll,
+    (isOn) => {
+        if (!isOn || !props.showApplyToAllCheckbox) {
+            return;
+        }
+
+        emit('commission-changed', { type: commissionType.value, value: commissionValue.value });
+    },
+);
+
+// Adopts a commission broadcast from whichever option was just edited.
+// Skipped once already in sync (see matchesSharedCommission) so this
+// can't loop back into re-emitting 'commission-changed' above.
+watch(
+    () => props.sharedCommission,
+    (shared) => {
+        if (!props.applyToAll || shared === null || matchesSharedCommission()) {
+            return;
+        }
+
+        commissionType.value = shared.type;
+        commissionValue.value = shared.value;
+    },
+);
 
 const save = async () => {
     // Vue's v-model auto-coerces <input type="number"> to a JS Number once
@@ -80,6 +228,29 @@ const save = async () => {
     }
 };
 
+const savePrice = async () => {
+    const raw = String(offeredPrice.value ?? '').trim();
+
+    saving.value = true;
+
+    try {
+        const { data } = await window.axios.patch(route('quote-offers.update', props.offer.id), {
+            offered_price: raw === '' ? null : raw,
+            offered_currency: offeredCurrency.value || null,
+        });
+
+        // Adopt the server's authoritative numbers — offered_price comes
+        // back as a number (or null), and final_price is recomputed there
+        // against the stored commission, never trusted from here.
+        props.offer.offered_price = data.offer.offered_price;
+        props.offer.offered_currency = data.offer.offered_currency;
+        props.offer.final_price = data.offer.final_price;
+        savedAt.value = Date.now();
+    } finally {
+        saving.value = false;
+    }
+};
+
 // A checkbox toggle is a single deliberate click, not something to
 // debounce like the commission text inputs — save it immediately.
 const toggleSelected = async () => {
@@ -100,81 +271,86 @@ const toggleSelected = async () => {
 // hoisted) so the checkbox saves immediately on every toggle — no
 // debounce, since a click is already a single deliberate action.
 watch(selected, toggleSelected);
+
+// A full page navigation (not axios) — the server always redirects
+// somewhere: this offer's own Contract edit page on success, or back
+// here with a flash error if it couldn't build one (see
+// QuoteOfferController::generateContract()). Guarded by hasClient
+// itself (the button is also just disabled) since a plain page
+// navigation has no in-flight state to gate a second click on the way
+// axios calls elsewhere in this file do.
+const generatingContract = ref(false);
+
+const generateContract = () => {
+    if (!props.hasClient || generatingContract.value) {
+        return;
+    }
+
+    generatingContract.value = true;
+
+    router.post(route('quote-offers.generate-contract', props.offer.id), {}, {
+        onFinish: () => {
+            generatingContract.value = false;
+        },
+    });
+};
 </script>
 
 <template>
-    <div class="card p-4 sm:p-6" :class="{ 'ring-2 ring-accent-500': selected }">
-        <div class="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
-            <div class="flex items-start gap-3">
-                <label class="flex items-center gap-2 pt-0.5" title="Include this offer when generating the client PDF">
-                    <Checkbox v-model:checked="selected" />
-                    <span class="sr-only">Include in client PDF</span>
-                </label>
+    <div class="card p-3 sm:p-4" :class="{ 'ring-2 ring-accent-500': selected }">
+        <div class="flex items-start gap-3">
+            <label class="flex items-center gap-2 pt-0.5" title="Include this offer when generating the client PDF">
+                <Checkbox v-model:checked="selected" />
+                <span class="sr-only">Include in client PDF</span>
+            </label>
+
+            <div>
+                <p class="text-sm font-medium text-gray-900">
+                    {{ offer.operator_name }}
+                </p>
+                <p class="mt-0.5 text-sm text-gray-600">
+                    {{ offer.aircraft_type }}
+                    <span v-if="offer.aircraft_registration">— {{ offer.aircraft_registration }}</span>
+                    <span v-else class="text-gray-400">— floating fleet, no tail assigned</span>
+                </p>
+                <p class="mt-0.5 text-sm text-gray-500">{{ offerStats }}</p>
+                <p
+                    class="mt-1 text-sm font-semibold"
+                    :class="offer.offered_price === null ? 'text-gray-400' : 'text-gray-900'"
+                >
+                    {{ offer.offered_price === null ? 'Price not set' : formatMoney(offer.offered_price, offer.offered_currency) }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Price + commission -->
+        <div class="mt-3 flex flex-col gap-3 border-t border-gray-100 pt-3 sm:flex-row sm:items-end sm:justify-between">
+            <div class="flex flex-wrap items-end gap-3">
+                <div>
+                    <InputLabel value="Price" />
+                    <input
+                        v-model="offeredPrice"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        class="mt-1 block w-32 rounded-lg border-gray-300 py-2 text-sm text-gray-900 shadow-sm focus:border-accent-500 focus:ring-accent-500"
+                        placeholder="e.g. 25000"
+                    />
+                </div>
 
                 <div>
-                    <p class="text-sm font-medium text-gray-900">
-                        {{ offer.operator_name }}
-                    </p>
-                    <p class="mt-0.5 text-sm text-gray-600">
-                        {{ offer.aircraft_type }}
-                        <span v-if="offer.aircraft_registration">— {{ offer.aircraft_registration }}</span>
-                        <span v-else class="text-gray-400">— floating fleet, no tail assigned</span>
-                    </p>
+                    <InputLabel value="Currency" />
+                    <select
+                        v-model="offeredCurrency"
+                        class="mt-1 rounded-lg border-gray-300 py-2 pl-3 pr-8 text-sm text-gray-900 shadow-sm focus:border-accent-500 focus:ring-accent-500"
+                    >
+                        <option :value="null">—</option>
+                        <option value="EUR">EUR</option>
+                        <option value="RON">RON</option>
+                        <option value="USD">USD</option>
+                    </select>
                 </div>
-            </div>
 
-            <div class="flex items-center gap-2">
-                <Badge v-if="offer.tail" variant="success">✓ in fleet</Badge>
-                <p class="text-sm font-semibold text-gray-900">
-                    {{ formatMoney(offer.offered_price, offer.offered_currency) }}
-                </p>
-            </div>
-        </div>
-
-        <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-600 sm:grid-cols-4">
-            <div>
-                <dt class="text-gray-500">Year of make</dt>
-                <dd class="text-gray-900">{{ offer.year_of_make || '—' }}</dd>
-            </div>
-            <div>
-                <dt class="text-gray-500">Max PAX</dt>
-                <dd class="text-gray-900">{{ offer.max_pax ?? '—' }}</dd>
-            </div>
-            <div>
-                <dt class="text-gray-500">Distance</dt>
-                <dd class="text-gray-900">{{ offer.distance_nm ? `${offer.distance_nm} NM` : '—' }}</dd>
-            </div>
-            <div>
-                <dt class="text-gray-500">Flight time</dt>
-                <dd class="text-gray-900">{{ offer.flight_duration || '—' }}</dd>
-            </div>
-        </dl>
-
-        <!-- Schedule — local time only, deliberately: the raw email also
-             carries a UTC figure next to each of these, which never gets
-             extracted in the first place (see AvinodeQuoteEmailParser). -->
-        <div v-if="offer.itinerary" class="mt-4 rounded-lg bg-gray-50 p-3 text-sm">
-            <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
-                <p class="text-gray-900">
-                    <span class="font-medium">{{ offer.itinerary.departure_time || '—' }}</span>
-                    {{ offer.itinerary.departure_airport || '—' }}
-                </p>
-                <p class="text-gray-400">→</p>
-                <p class="text-gray-900">
-                    <span class="font-medium">{{ offer.itinerary.arrival_time || '—' }}</span>
-                    {{ offer.itinerary.arrival_airport || '—' }}
-                </p>
-            </div>
-            <p class="mt-1 text-xs text-gray-500">
-                {{ offer.itinerary.departure_date || '—' }}
-                <span v-if="offer.itinerary.pax"> · {{ offer.itinerary.pax }} PAX</span>
-                <span v-if="!offer.itinerary.arrival_time"> · arrival time not quoted for this offer</span>
-            </p>
-        </div>
-
-        <!-- Commission -->
-        <div class="mt-4 flex flex-col gap-3 border-t border-gray-100 pt-4 sm:flex-row sm:items-end sm:justify-between">
-            <div class="flex flex-wrap items-end gap-3">
                 <div>
                     <InputLabel value="Commission" />
                     <select
@@ -189,7 +365,9 @@ watch(selected, toggleSelected);
 
                 <div v-if="commissionType">
                     <InputLabel
-                        :value="commissionType === 'percentage' ? '%' : `Amount (${offer.offered_currency})`"
+                        :value="commissionType === 'percentage'
+                            ? '%'
+                            : (displayCurrency ? `Amount (${displayCurrency})` : 'Amount')"
                     />
                     <input
                         v-model="commissionValue"
@@ -201,6 +379,40 @@ watch(selected, toggleSelected);
                     />
                 </div>
 
+                <!-- Only this quote's cheapest offer (its "Option 1") shows
+                     the toggle — applyToAll itself is quote-wide state
+                     owned by the parent page and handed to every card, so
+                     wherever it's edited from, the sync still applies to
+                     all of them. -->
+                <label
+                    v-if="showApplyToAllCheckbox"
+                    class="flex items-center gap-2 pb-2 text-sm text-gray-600"
+                    title="While checked, editing this option's commission (type or value) copies it to every other option in this quote"
+                >
+                    <Checkbox
+                        :checked="applyToAll"
+                        @update:checked="$emit('update:applyToAll', $event)"
+                    />
+                    Apply to all
+                </label>
+
+                <!-- Available on every offer regardless of its checkbox
+                     above — which offer becomes the client PDF and which
+                     becomes the contract are independent choices, so this
+                     doesn't read `selected` at all. Only needs a client
+                     chosen (a Contract always belongs to one); nothing
+                     else here gates it, since aircraft/airport matching
+                     is best-effort by design — see
+                     QuoteOfferController::generateContract(). -->
+                <SecondaryButton
+                    type="button"
+                    :disabled="!hasClient || generatingContract"
+                    :title="hasClient ? undefined : 'Select a client first'"
+                    @click="generateContract"
+                >
+                    {{ generatingContract ? 'Generating…' : 'Generate Contract' }}
+                </SecondaryButton>
+
                 <p class="text-xs text-gray-400" v-if="saving">Saving…</p>
                 <p class="text-xs text-gray-400" v-else-if="savedAt">Saved</p>
             </div>
@@ -208,7 +420,7 @@ watch(selected, toggleSelected);
             <div v-if="liveFinalPrice !== null" class="text-right">
                 <p class="text-xs text-gray-500">Total price</p>
                 <p class="text-base font-semibold text-gray-900">
-                    {{ formatMoney(liveFinalPrice, offer.offered_currency) }}
+                    {{ formatMoney(liveFinalPrice, displayCurrency) }}
                 </p>
             </div>
         </div>

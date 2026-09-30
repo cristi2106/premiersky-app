@@ -78,6 +78,11 @@ class QuoteOfferImporter
             'flight_duration' => $offer['flight_duration'],
             'raw_email_body' => $rawBody,
             'tail_id' => $tailId,
+            // Explicit despite also being the column default (see the
+            // migration that added it) — this method only ever deals in
+            // parsed-from-email offers, so it should say so regardless of
+            // what the schema defaults to.
+            'source' => 'email',
         ]);
     }
 
